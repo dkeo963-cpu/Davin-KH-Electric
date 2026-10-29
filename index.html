@@ -349,7 +349,7 @@
             font-weight: 600;
         }
 
-        /* 5. Accessories Featured Cards Section (Matching exact UI style) */
+        /* 5. Accessories Featured Cards Section */
         .accessories-section {
             max-width: 1400px;
             margin: 0 auto 50px auto;
@@ -653,7 +653,7 @@
             .header-nav-actions { gap: 10px; }
         }
 
-        /* ===== Products view (merged from products.html) ===== */
+        /* ===== Products view ===== */
         .products-catalog { margin-top: 30px; }
         .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
         .product-card {
@@ -697,7 +697,7 @@
             .product-btn { width: 100%; padding: 8px 6px; font-size: 12px; white-space: nowrap; }
         }
 
-        /* ===== Product detail view (merged from sub-product.html) ===== */
+        /* ===== Product detail view ===== */
         .detail-container {
             max-width: 1400px;
             margin: 30px auto 50px auto;
@@ -963,8 +963,7 @@
             .card-product-price { font-size: 14px; }
         }
 
-
-        /* ================= CART VIEW (from cart.html) ================= */
+        /* ================= CART VIEW ================= */
         .custom-modal-icon-wrap {
             width: 60px;
             height: 60px;
@@ -1031,26 +1030,6 @@
         .custom-modal-btn-success {
             background: #137333 !important;
             color: #ffffff !important;
-        }
-        .btn-login-telegram-modal {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 12px 16px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 10px;
-            background-color: #2481cc;
-            color: #ffffff;
-            border: none;
-            text-decoration: none;
-            transition: opacity 0.2s ease;
-        }
-        .btn-login-telegram-modal:hover {
-            opacity: 0.85;
-            color: #ffffff;
         }
         .content-container {
             max-width: 1400px;
@@ -1207,7 +1186,7 @@
         }
         .cart-modal .custom-modal-card { padding: 24px 20px; border: 1px solid rgba(255,255,255,0.1); }
 
-        /* ================= ACCOUNT VIEW (from users.html) ================= */
+        /* ================= ACCOUNT VIEW ================= */
         .profile-card {
             background: #f1f5f9;
             border: 1px solid var(--card-border);
@@ -1345,16 +1324,6 @@
             color: #ffffff;
             border-color: #dc3545;
         }
-        .custom-alert {
-            background: #fffbeb;
-            border: 1px solid #fef3c7;
-            color: #92400e;
-            border-radius: 8px;
-            padding: 14px;
-            font-size: 12px;
-            text-align: left;
-            margin-bottom: 24px;
-        }
         #userView .catalog-container { margin-top: 30px; }
 
         @media (max-width: 1100px) { .content-container { padding: 0 20px; } }
@@ -1432,7 +1401,7 @@
         </div>
     </section>
 
-    <!-- 4. Dynamic New Arrivals Section (Filtered via sub_products where new_arrival in 1, 2, 3) -->
+    <!-- 4. Dynamic New Arrivals Section -->
     <section class="accessories-section">
         <h2 class="section-title-heading" id="accessoriesHeading">New Arrival Products</h2>
         <div class="accessories-grid" id="newArrivalsContainer">
@@ -1440,7 +1409,7 @@
         </div>
     </section>
 
-    <!-- 5. Dynamic Category Catalog Section (Supabase Integration) -->
+    <!-- 5. Dynamic Category Catalog Section -->
     <div class="catalog-container" id="categoriesCatalog">
         <div class="catalog-header-bar">
             <h3 id="catalogHeading">Product Categories</h3>
@@ -1474,7 +1443,7 @@
     </div>
     <!-- ============ END HOME VIEW ============ -->
 
-    <!-- ============ PRODUCTS VIEW (was products.html) ============ -->
+    <!-- ============ PRODUCTS VIEW ============ -->
     <div id="productsView" style="display:none;">
         <div class="catalog-container products-catalog">
             <div class="catalog-header-bar">
@@ -1492,7 +1461,7 @@
         </div>
     </div>
 
-    <!-- ============ PRODUCT DETAIL VIEW (was sub-product.html) ============ -->
+    <!-- ============ PRODUCT DETAIL VIEW ============ -->
     <div id="detailView" style="display:none;">
         <div class="detail-container">
             <div class="top-back-btn-wrapper">
@@ -1561,7 +1530,7 @@
         </div>
     </div>
 
-    <!-- ============ CART VIEW (was cart.html) ============ -->
+    <!-- ============ CART VIEW ============ -->
     <div id="cartView" style="display:none;">
     <div class="content-container">
         <div class="top-back-btn-wrapper">
@@ -1583,11 +1552,11 @@
                 <div class="row">
                     <div class="col-md-3 mb-3">
                         <label class="form-label" id="lblName">Full Name *</label>
-                        <input type="text" class="form-control" id="custName" readonly required placeholder="e.g. Sokha Chan">
+                        <input type="text" class="form-control" id="custName" readonly required placeholder="Name">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label" id="lblUsername">Telegram Username *</label>
-                        <input type="text" class="form-control" id="custUsername" readonly required placeholder="e.g. @username">
+                        <input type="text" class="form-control" id="custUsername" readonly required placeholder="@username">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label" id="lblPhone">Phone number (optional)</label>
@@ -1613,7 +1582,7 @@
             </div>
 
             <div class="checkout-action">
-                <span class="text-muted" style="font-size: 11px;" id="txtSubmitHint">Click the button to submit your order</span>
+                <span class="text-muted" style="font-size: 11px;" id="txtSubmitHint">Click the button to submit your order to store bot</span>
                 <button type="button" class="btn-submit" id="btnSubmitOrder" title="Submit Order">
                     <i class="bi bi-send-fill"></i> <span id="txtSubmitOrderBtn">Submit Order</span>
                 </button>
@@ -1622,7 +1591,7 @@
     </div>
     </div>
 
-    <!-- ============ ACCOUNT VIEW (was users.html) ============ -->
+    <!-- ============ ACCOUNT VIEW ============ -->
     <div id="userView" style="display:none;">
         <div class="catalog-container">
             <section class="profile-card" id="profileCard"></section>
@@ -1659,7 +1628,7 @@
         </div>
     </div>
 
-    <!-- Cart modals (alert, success, loading, KHQR payment) -->
+    <!-- Cart alert and loading modals -->
     <div id="customAlertModal" class="custom-modal-overlay cart-modal">
         <div class="custom-modal-card">
             <div class="custom-modal-icon-wrap">
@@ -1689,31 +1658,9 @@
     <div id="verifyLoadingModal" class="custom-modal-overlay cart-modal">
         <div class="custom-modal-card">
             <div class="spinner-border text-light mb-3" role="status" style="width: 2rem; height: 2rem;"></div>
-            <p class="text-secondary mb-0" id="verifyLoadingText" style="font-size: 12px;">Processing order and fetching latest details...</p>
+            <p class="text-secondary mb-0" id="verifyLoadingText" style="font-size: 12px;">Sending order to bot store...</p>
         </div>
     </div>
-
-    <div id="payModal" class="custom-modal-overlay cart-modal">
-        <div class="custom-modal-card">
-            <h3 id="payTitle">Pay with Bakong KHQR</h3>
-            <p id="payDesc">Scan with ABA, ACLEDA or any Bakong bank app.</p>
-            <div id="payAmount" style="font-size:26px;font-weight:800;color:#f59e0b;">$0.00</div>
-            <img id="payQrImg" alt="KHQR payment code" width="240" height="240"
-                 style="display:block;margin:10px auto;background:#fff;border-radius:12px;padding:6px;">
-            <div id="payTimer" style="font-size:13px;color:#94a3b8;margin-bottom:10px;">10:00</div>
-            <a id="payOpenAppBtn" href="#" rel="noopener noreferrer" class="btn-login-telegram-modal mb-2"
-               style="display:none;background-color:#e21a1a;">
-                <i class="bi bi-bank2"></i> <span id="payOpenAppText">Open bank app (ABA, ACLEDA...)</span>
-            </a>
-            <div id="payStatus" style="font-size:12px;color:#94a3b8;margin-bottom:12px;">
-                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-                <span id="payStatusText">Waiting for payment...</span>
-            </div>
-            <button type="button" id="payCancelBtn" class="custom-modal-btn custom-modal-btn-cancel w-100 py-2">Cancel</button>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 
     <!-- Supabase Integration & Logic Script -->
     <script type="module">
@@ -1755,8 +1702,7 @@
             } catch (_) {}
         })();
 
-        // ================= STORE OPEN/CLOSED + ADMIN "RELOAD ALL USERS" =================
-        // Settings written by the admin dashboard: is_store_open, closed_message, reload_token
+        // ================= STORE OPEN/CLOSED =================
         let STORE_CLOSED = false;
         function setStoreClosed(closed, msg) {
             STORE_CLOSED = closed;
@@ -1768,7 +1714,7 @@
                 c.innerHTML = '<div style="max-width:420px"><div style="font-size:60px">🔒</div><h2 style="margin:12px 0 6px;font-weight:800">ហាងបិទបណ្ដោះអាសន្ន</h2><h3 style="margin:0 0 14px;font-weight:700;opacity:.9">The store is closed</h3><p id="storeClosedMsg" style="opacity:.85;line-height:1.7;margin:0;white-space:pre-line"></p></div>';
                 document.body.appendChild(c);
             }
-            c.querySelector("#storeClosedMsg").textContent = msg || "សូមត្រឡប់មកវិញពេលក្រោយ។\nPlease come back later.";
+            c.querySelector("#storeClosedMsg").textContent = msg || "សូមត្រឡប់មកវិញពេលក្រោយ。\nPlease come back later.";
             document.body.style.overflow = "hidden";
         }
         (function watchSettings() {
@@ -1786,12 +1732,12 @@
             }
             async function check() {
                 const o = await readAll();
-                if (!o) return;                                   // network problem: try again later
+                if (!o) return;
                 setStoreClosed(String(o.is_store_open ?? "").toLowerCase() === "false", o.closed_message || "");
                 const t = o.reload_token ?? "";
                 if (baseline === null) { baseline = t; return; }
                 if (t !== baseline) {
-                    if (document.querySelector(".custom-modal-overlay.active")) return;   // do not interrupt a payment/popup
+                    if (document.querySelector(".custom-modal-overlay.active")) return;
                     location.reload();
                 }
             }
@@ -1802,14 +1748,13 @@
 
         // ================= TELEGRAM MINI APP =================
         const tg = window.Telegram?.WebApp;
-        const IN_TG = !!(tg && tg.initData);   // true only when opened inside Telegram
+        const IN_TG = !!(tg && tg.initData);
         if (IN_TG) {
             document.documentElement.classList.add("tg-mini");
             try { tg.ready(); tg.expand(); } catch (_) {}
-            try { tg.disableVerticalSwipes?.(); } catch (_) {}   // swipe down will not close the app by accident
+            try { tg.disableVerticalSwipes?.(); } catch (_) {}
         }
 
-        // Open a link outside the app (bank app, Facebook, t.me ...)
         function openExternal(url) {
             try {
                 if (IN_TG) {
@@ -1821,7 +1766,6 @@
             window.open(url, "_blank", "noopener");
         }
 
-        // Silent login: Telegram already knows who the user is
         let miniLoginPromise = null;
         function miniAppLogin(force = false) {
             if (!IN_TG) return Promise.resolve(false);
@@ -1845,7 +1789,6 @@
             return miniLoginPromise;
         }
 
-        // Telegram's own Back button follows the in-page navigation
         function updateBackButton() {
             if (!IN_TG || !tg.BackButton) return;
             if (currentMode() !== "home") tg.BackButton.show(); else tg.BackButton.hide();
@@ -1856,7 +1799,6 @@
             });
         }
 
-        // Location: Telegram's location manager when available, browser GPS otherwise
         function getPosition(ok, fail, opts) {
             const lm = IN_TG && tg.isVersionAtLeast?.("8.0") ? tg.LocationManager : null;
             if (lm) {
@@ -1873,7 +1815,6 @@
             navigator.geolocation.getCurrentPosition(ok, fail, opts);
         }
 
-        // Login links and external links behave correctly inside Telegram
         document.addEventListener("click", (e) => {
             if (!IN_TG) return;
             const a = e.target.closest("a[href]");
@@ -1939,7 +1880,7 @@
                 loading: "កំពុងទាញយកទិន្នន័យពី Supabase...",
                 noData: "មិនមានប្រភេទទំនិញឡើយ។",
                 guideTitle: "១. របៀបបញ្ជាទិញនៅលើវែបសាយនេះ",
-                guideDesc: "វីដេអូនេះបង្ហាញពីរបៀបជ្រើសរើសទំនិញ បញ្ចូលក្នុងកន្ត្រក និងបង់ប្រាក់តាមតេលេក្រាមយ៉ាងងាយស្រួល។",
+                guideDesc: "វីដេអូនេះបង្ហាញពីរបៀបជ្រើសរើសទំនិញ បញ្ចូលក្នុងកន្ត្រក និងផ្ញើការបញ្ជាទិញទៅតេលេក្រាមយ៉ាងងាយស្រួល។",
                 modalTitle: "តម្រូវឱ្យចូលគណនី",
                 modalDesc: "សូមចូលគណនីរបស់អ្នកជាមុនសិនដើម្បីបន្ត។",
                 cancel: "បោះបង់",
@@ -1962,7 +1903,7 @@
                 relatedTitle: "ផលិតផលពាក់ព័ន្ធ",
                 noRelated: "មិនមានផលិតផលពាក់ព័ន្ធ",
                 detailDefaultSpec: "ឧបករណ៍គុណភាពខ្ពស់ស្តង់ដារអន្តរជាតិ។",
-                deliveryText: "ដឹកជញ្ជូនឥតគិតថ្លៃសម្រាប់ការទិញលើស 10 មុខទំនិញ ទាំងក្នុងរាជធានីភ្នំពេញ និងខេត្តក្រុង។ ការដឹកជញ្ជូនធម្មតាចំណាយពេល ១-២ ថ្ងៃ។"
+                deliveryText: "ដឹកជញ្ជូនឥតគិតថ្លៃសម្រាប់ការទិញលើស 10 មុខទំនិញ ទាំងក្នុងរាជធានីភ្នំពេញ និងខេត្តក្រុង។ การដឹកជញ្ជូនធម្មតាចំណាយពេល ១-២ ថ្ងៃ។"
             },
             en: {
                 langLabel: "EN",
@@ -2111,7 +2052,7 @@
         }
         document.getElementById("langToggleBtn")?.addEventListener("click", toggleLanguage);
 
-        // ---------- Routing: one page, two views ----------
+        // ---------- Routing ----------
         function readUrl() {
             const p = new URLSearchParams(window.location.search);
             productId = (p.get("product") || "").trim() || null;
@@ -2152,7 +2093,7 @@
                 try {
                     history.pushState({ spa: true }, "", target);
                 } catch (e) {
-                    window.location.href = "index.html" + search; // e.g. file:// preview
+                    window.location.href = "index.html" + search;
                     return;
                 }
             }
@@ -2165,7 +2106,6 @@
 
         window.addEventListener("popstate", route);
 
-        // Turn links to index.html / products.html into in-page navigation
         document.addEventListener("click", (e) => {
             if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
             const a = e.target.closest("a[href]");
@@ -2197,7 +2137,6 @@
             }
         });
 
-        // Search
         const handleSearch = () => {
             const input = document.getElementById("mainSearchInput");
             const query = input ? input.value.trim() : "";
@@ -2207,7 +2146,6 @@
             if (e.key === "Enter") handleSearch();
         });
 
-        // Account modal logic
         const modal = document.getElementById("loginPopupModal");
         document.getElementById("modalCancelBtn")?.addEventListener("click", () => modal.classList.remove("active"));
         modal?.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("active"); });
@@ -2215,7 +2153,7 @@
         async function handleAccountClick(e) {
             e.preventDefault();
             const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
+            if (session || IN_TG) {
                 navigate("?view=account");
             } else {
                 modal.classList.add("active");
@@ -2255,26 +2193,25 @@
                 defaults.forEach(item => {
                     const card = document.createElement("a");
                     card.className = "accessory-card";
-                    card.href = "index.html?products=all";
-                    card.innerHTML = `
-                        <div class="accessory-card-content">
-                            <span class="accessory-card-sub">${item.sub}</span>
-                            <div class="accessory-card-title">${item.title}</div>
-                            <span class="accessory-card-link">► ${currentLang === 'kh' ? 'ទិញឥឡូវនេះ' : 'SHOP NOW'}</span>
-                        </div>
-                        <div class="accessory-card-img-box">
-                            <img src="${item.img}" alt="${item.title}">
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
+        // Check initial authentication state or Telegram WebApp context
+        async function initAuth() {
+            // Check if running inside Telegram Mini App
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+                const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+                console.log("Telegram Mini App user detected:", tgUser);
+                
+                // Signal Telegram Web App is ready and expand view
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+
+                // Perform silent login / auto-authenticate using Telegram user profile
+                await handleTelegramAutoLogin(tgUser);
                 return;
             }
 
             fetchedNewArrivals.forEach(item => {
                 const subTitle = (currentLang === "kh" && item.category_subtitle_kh) ? item.category_subtitle_kh : (item.category_subtitle || item.category || "NEW ARRIVAL");
                 const cardTitle = (currentLang === "kh" && item.title_kh) ? item.title_kh : (item.title || item.name || "Special Offer");
-                // Open the real product page, with this variant pre-selected
                 const parentId = item.product_id ?? item.products_id;
                 const targetLink = parentId != null
                     ? `index.html${productLink(parentId, item.id)}`
@@ -2300,98 +2237,98 @@
             });
         }
 
-        // ---------- Categories ----------
-        async function fetchCategories() {
-            const loading = document.getElementById("loadingIndicator");
-            const errorBox = document.getElementById("errorBox");
-            const container = document.getElementById("categoryContainer");
-
-            if (loading) loading.style.display = "block";
-            if (errorBox) errorBox.style.display = "none";
-            if (container) container.textContent = "";
-
+        // Handle Telegram Mini App automatic silent login
+        async function handleTelegramAutoLogin(tgUser) {
             try {
-                const { data, error } = await supabase.from("categories").select("*");
-                if (error) throw error;
-                fetchedCategories = data || [];
-                renderCategories();
-                renderSubnavCategories();
-            } catch (err) {
-                console.error(err);
-                if (errorBox) {
-                    errorBox.style.display = "block";
-                    errorBox.textContent = err.message || JSON.stringify(err);
+                // Ensure Firebase auth is authenticated anonymously or with custom token first
+                if (!auth.currentUser) {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
                 }
-            } finally {
-                if (loading) loading.style.display = "none";
+
+                // Construct full profile object from Telegram user data
+                const userProfile = {
+                    uid: auth.currentUser ? auth.currentUser.uid : 'tg_' + tgUser.id,
+                    telegramId: tgUser.id,
+                    firstName: tgUser.first_name || '',
+                    lastName: tgUser.last_name || '',
+                    displayName: [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || tgUser.username || 'Telegram User',
+                    username: tgUser.username ? `@${tgUser.username}` : '',
+                    photoUrl: tgUser.photo_url || '',
+                    isTelegramUser: true,
+                    authType: 'telegram'
+                };
+
+                // Store session state
+                currentUser = userProfile;
+                isLoggedIn = true;
+
+                // Sync and pre-fill form fields across UI
+                populateTelegramUserData(userProfile);
+
+                // Hide login modals/prompts and display user dashboard directly
+                showAuthenticatedState(userProfile);
+
+            } catch (error) {
+                console.error("Error during Telegram silent login:", error);
             }
         }
 
-        function renderSubnavCategories() {
-            const subnavContainer = document.getElementById("subnavCategoriesList");
-            if (!subnavContainer) return;
-            subnavContainer.textContent = "";
+        // Auto-fill checkout and profile fields with Telegram user info
+        function populateTelegramUserData(user) {
+            // Fill Cart / Order form input fields
+            const nameInput = document.querySelector('input[name="fullName"], #cart-name-input, #checkout-name');
+            const usernameInput = document.querySelector('input[name="username"], #cart-username-input, #checkout-username');
+            
+            if (nameInput) nameInput.value = user.displayName;
+            if (usernameInput) usernameInput.value = user.username;
 
-            const homeLi = document.createElement("li");
-            const homeA = document.createElement("a");
-            homeA.href = "index.html";
-            homeA.textContent = translations[currentLang].home || "Home";
-            if (currentMode() === "home") homeA.className = "active";
-            homeLi.appendChild(homeA);
-            subnavContainer.appendChild(homeLi);
+            // Fill Profile Card details
+            const profileNameEl = document.querySelector('#profile-name, .user-profile-name');
+            const profileUsernameEl = document.querySelector('#profile-username, .user-profile-handle');
+            const profileAvatarEl = document.querySelector('#profile-avatar, .user-profile-avatar');
 
-            fetchedCategories.forEach(cat => {
-                const slug = slugOf(cat);
-                const li = document.createElement("li");
-                const a = document.createElement("a");
-                a.href = `index.html?category=${encodeURIComponent(slug)}`;
-                const activeSlug = currentMode() === "detail" ? detailCategorySlug : categorySlug;
-                if (activeSlug && activeSlug === slug) a.className = "active";
-                a.textContent = catName(cat);
-                li.appendChild(a);
-                subnavContainer.appendChild(li);
-            });
+            if (profileNameEl) profileNameEl.textContent = user.displayName;
+            if (profileUsernameEl) profileUsernameEl.textContent = user.username || `ID: ${user.telegramId}`;
+            if (profileAvatarEl && user.photoUrl) {
+                profileAvatarEl.src = user.photoUrl;
+                profileAvatarEl.classList.remove('hidden');
+            }
         }
 
-        function renderCategories() {
-            const container = document.getElementById("categoryContainer");
-            if (!container) return;
-            container.textContent = "";
-
-            if (fetchedCategories.length === 0) {
-                const wrapper = document.createElement("div");
-                wrapper.style.gridColumn = "1 / -1";
-                const alert = document.createElement("div");
-                alert.className = "alert alert-warning text-center m-0 small";
-                alert.textContent = translations[currentLang].noData;
-                wrapper.appendChild(alert);
-                container.appendChild(wrapper);
-                return;
+        // Transition UI directly to logged-in / unlocked user view
+        function showAuthenticatedState(user) {
+            // Dismiss any active login modal or lock screen overlay
+            const loginModal = document.querySelector('#login-modal, .auth-modal, #auth-overlay');
+            if (loginModal) {
+                loginModal.classList.add('hidden');
+                loginModal.style.display = 'none';
             }
 
-            fetchedCategories.forEach(cat => {
-                const slug = slugOf(cat);
-                const name = catName(cat);
-                const imgSrc = publicImage(cat.image || cat.image_url || cat.icon || "");
+            // Show user account section/card
+            const userAccountView = document.querySelector('#user-account-view, #profile-section, .user-dashboard');
+            if (userAccountView) {
+                userAccountView.classList.remove('hidden');
+                userAccountView.style.display = 'block';
+            }
 
-                const card = document.createElement("a");
-                card.className = "category-card";
-                card.href = `index.html?category=${encodeURIComponent(slug)}`;
+            // Update UI login buttons to reflect signed-in state
+            const loginBtn = document.querySelector('#login-btn, .btn-login');
+            if (loginBtn) {
+                loginBtn.classList.add('hidden');
+            }
 
-                if (imgSrc) {
-                    const img = document.createElement("img");
-                    img.className = "category-card-img";
-                    img.src = imgSrc;
-                    img.alt = name;
-                    img.loading = "lazy";
-                    img.onerror = () => img.replaceWith(createPlaceholder());
-                    card.appendChild(img);
-                } else {
-                    card.appendChild(createPlaceholder());
-                }
+            const logoutBtn = document.querySelector('#logout-btn, .btn-logout');
+            if (logoutBtn) {
+                logoutBtn.classList.remove('hidden');
+            }
+        }
 
-                const overlay = document.createElement("div");
-                overlay.className = "category-card-overlay";
+        // Call initAuth on DOM ready
+        document.addEventListener('DOMContentLoaded', initAuth);
                 const title = document.createElement("h3");
                 title.className = "category-card-title";
                 title.textContent = name;
@@ -2411,7 +2348,7 @@
             return div;
         }
 
-        // ---------- Products (was products.html) ----------
+        // ---------- Products ----------
         async function loadProducts() {
             const token = ++loadToken;
             const loading = document.getElementById("productLoading");
@@ -2440,7 +2377,7 @@
                 updateProductsHeader();
 
                 if (categorySlug && targetCategoryId === null) {
-                    fetchedProducts = []; // unknown category: show "no products"
+                    fetchedProducts = [];
                 } else {
                     let query = supabase.from("products").select("*");
                     if (targetCategoryId !== null) query = query.eq("category_id", targetCategoryId);
@@ -2550,7 +2487,7 @@
             });
         }
 
-        // ---------- Product detail (was sub-product.html) ----------
+        // ---------- Product detail ----------
         const detailLoading = document.getElementById("detailLoading");
         const detailError = document.getElementById("detailError");
         const productDetailWrapper = document.getElementById("productDetailWrapper");
@@ -2564,7 +2501,6 @@
         const specPane = document.getElementById("specPane");
         const relatedProductContainer = document.getElementById("relatedProductContainer");
 
-        // Back: stay inside the app if we came from another page of it
         document.getElementById("detailBackBtn").addEventListener("click", () => {
             if (history.state && history.state.spa) {
                 history.back();
@@ -2755,7 +2691,6 @@
             const specEn = selectedVariant.specification || selectedVariant.description || (mainProductData ? (mainProductData.specification || mainProductData.description) : "");
             specPane.textContent = (currentLang === "kh" && specKh) ? specKh : (specEn || t.detailDefaultSpec);
 
-            // Live stock + price check right before adding to the cart
             addToCartMainBtn.onclick = async () => {
                 if (isOutOfStock) return;
                 addToCartMainBtn.disabled = true;
@@ -2895,9 +2830,8 @@
             }
         }
 
-
         // =====================================================================
-        // CART VIEW (was cart.html)
+        // CART VIEW
         // =====================================================================
         const cartTr = {
             kh: {
@@ -2910,35 +2844,26 @@
                 cartTitle: "ទំនិញក្នុងកន្ត្រក",
                 contactTitle: "ព័ត៌មានទំនាក់ទំនង",
                 lblName: "ឈ្មោះពេញ *",
-                placeholderName: "ឧ. ចាន់ សុខា",
+                placeholderName: "ឈ្មោះគណនី",
                 lblUsername: "Telegram Username *",
-                placeholderUsername: "ឧ. @username",
+                placeholderUsername: "@username",
                 lblPhone: "លេខទូរស័ព្ទ (ស្រេចចិត្ត)",
                 placeholderPhone: "ឧ. 012345678",
                 lblAddress: "អាសយដ្ឋានដឹកជញ្ជូន / ទីតាំង",
                 placeholderAddress: "ឧ. ផ្លូវ ២៧១ ភ្នំពេញ",
                 lblTotal: "សរុបរួម",
-                submitHint: "បង់ប្រាក់តាម ABA, ACLEDA ឬធនាគារដែលគាំទ្រ Bakong",
-                submitOrderBtn: "បង់ប្រាក់តាម Bakong KHQR",
+                submitHint: "ចុចប៊ូតុងដើម្បីផ្ញើការបញ្ជាទិញទៅកាន់ Bot ហាងដោយផ្ទាល់",
+                submitOrderBtn: "ផ្ញើការបញ្ជាទិញទៅ Telegram Bot",
                 emptyCart: "គ្មានទំនិញនៅក្នុងកន្ត្រករបស់អ្នកទេ។",
                 each: "ក្នុងមួយ",
                 alertEmptyCart: "កន្ត្រកទំនិញរបស់អ្នកទទេ! សូមបន្ថែមទំនិញមុននឹងបញ្ជាទិញ។",
-                alertRequired: "រកមិនឃើញលេខទូរស័ព្ទនៅក្នុងប្រវត្តិរូបគណនីរបស់អ្នកទេ។",
-                alertPhoneMismatch: "លេខទូរស័ព្ទមិនត្រូវគ្នានឹងគណនីដែលបានចុះឈ្មោះក្នុងប្រព័ន្ធទេ។ ការបញ្ជាទិញត្រូវបានបដិសេធ។",
                 alertMissingUsername: "តម្រូវឱ្យមាន Telegram Username! សូមបង្កើត Username នៅក្នុងគណនី Telegram របស់អ្នកជាមុនសិន មុនពេលបញ្ជាទិញ។",
-                alertSuccess: "ការបញ្ជាទិញត្រូវបានធ្វើទៅកាន់ Telegram ដោយជោគជ័យ!",
+                alertSuccess: "ការបញ្ជាទិញត្រូវបានផ្ញើទៅកាន់ Telegram Bot ដោយជោគជ័យ!",
                 alertErr: "មានបញ្ហាក្នុងការផ្ញើការបញ្ជាទិញ៖ ",
                 outOfStock: "ចំនួនស្តុកមិនគ្រប់គ្រាន់សម្រាប់ ",
                 locFetching: "កំពុងទាញយកទីតាំង...",
                 locSuccess: "បានកំណត់ទីតាំងជោគជ័យ!",
                 locErr: "មិនអាចទាញយកទីតាំងរបស់អ្នកបានទេ សូមអនុញ្ញាតសិទ្ធិទីតាំង។",
-                modalTitle: "តម្រូវឱ្យចូលគណនី",
-                modalDesc: "សូមចូលគណនីរបស់អ្នកជាមុនសិនដើម្បីបន្ត។",
-                modalCancel: "បោះបង់",
-                modalLogin: "ចូលគណនី",
-                verifyModalTitle: "បញ្ជាក់ម្តងទៀត",
-                verifyModalDesc: "ការបញ្ជាទិញនេះនឹងត្រូវផ្ញើទៅកាន់ហាងយើងខ្ញុំ ហើយយើងនឹងទាក់ទងអ្នកវិញភ្លាមៗ។",
-                sendToOrder: "Send to order",
                 successTitle: "ជោគជ័យ"
             },
             en: {
@@ -2951,35 +2876,26 @@
                 cartTitle: "Cart Items",
                 contactTitle: "Contact Information",
                 lblName: "Full Name *",
-                placeholderName: "e.g. Sokha Chan",
+                placeholderName: "Full Name",
                 lblUsername: "Telegram Username *",
-                placeholderUsername: "e.g. @username",
+                placeholderUsername: "@username",
                 lblPhone: "Phone number (optional)",
                 placeholderPhone: "e.g. 012345678",
                 lblAddress: "Delivery Address / Location",
                 placeholderAddress: "e.g. St 271, Phnom Penh",
                 lblTotal: "Total",
-                submitHint: "Pay with ABA, ACLEDA or any Bakong bank app",
-                submitOrderBtn: "Pay with Bakong KHQR",
+                submitHint: "Click the button to submit all order data directly to the bot store",
+                submitOrderBtn: "Send Order to Telegram Bot",
                 emptyCart: "Your cart is empty.",
                 each: "each",
                 alertEmptyCart: "Your shopping cart is empty! Please add products before placing an order.",
-                alertRequired: "Phone number is missing from your account profile.",
-                alertPhoneMismatch: "Verification Code does not match your registered account in the database. Order rejected.",
                 alertMissingUsername: "Telegram username is required! Please set a username in your Telegram account settings before placing an order.",
-                alertSuccess: "Order submitted successfully to Telegram!",
+                alertSuccess: "Order submitted directly to Telegram Bot successfully!",
                 alertErr: "Error sending order: ",
                 outOfStock: "Insufficient stock for ",
                 locFetching: "Fetching location...",
                 locSuccess: "Location pinned successfully!",
                 locErr: "Unable to retrieve your location. Please check browser permissions.",
-                modalTitle: "Login Required",
-                modalDesc: "Please log in to your account first to proceed.",
-                modalCancel: "Cancel",
-                modalLogin: "LOG IN",
-                verifyModalTitle: "Confirm",
-                verifyModalDesc: "This will be sent automatically to our store, and we will contact you back immediately.",
-                sendToOrder: "Send to order",
                 successTitle: "Success"
             }
         };
@@ -3089,7 +3005,14 @@
             document.getElementById("custAddress").placeholder = t.placeholderAddress;
         }
 
-        // Fill the contact form from the logged-in Supabase session
+        // Helper to format handle with @
+        function formatHandle(u) {
+            if (!u) return "";
+            const clean = String(u).trim().replace(/^@+/, "");
+            return clean ? `@${clean}` : "";
+        }
+
+        // Fill the contact form: Full Name & Username are readonly, pulled directly from Telegram user or Supabase session
         async function checkAuth() {
             const { data: { session } } = await supabase.auth.getSession();
             currentUserSession = session;
@@ -3099,26 +3022,40 @@
             const phoneEl = document.getElementById("custPhone");
             const addrEl = document.getElementById("custAddress");
 
-            if (!session || !session.user) { nameEl.value = ""; userEl.value = ""; return; }
+            nameEl.readOnly = true;
+            userEl.readOnly = true;
 
-            const m = session.user.user_metadata || {};
-            const telegramId = String(m.id || m.telegram_id || "");
-            let username = m.username || "";
-            let phone = m.phone || m.phone_number || "";
+            const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+            let fullName = "";
+            let username = "";
+            let phone = "";
 
-            if (telegramId) {
-                const { data: liveUserRow } = await supabase
-                    .from("users").select("username, phone").eq("telegram_id", telegramId).maybeSingle();
-                if (liveUserRow) {
-                    if (liveUserRow.username) username = liveUserRow.username.trim();
-                    if (liveUserRow.phone) phone = liveUserRow.phone.trim();
-                }
+            if (tgUser) {
+                fullName = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(" ");
+                username = formatHandle(tgUser.username);
             }
 
-            nameEl.value = (m.full_name || m.name || "User").trim();
-            if (username) userEl.value = `@${username}`;
+            if (session?.user) {
+                const m = session.user.user_metadata || {};
+                if (!fullName) fullName = (m.full_name || m.name || "").trim();
+                if (!username) username = formatHandle(m.username);
+                phone = m.phone || m.phone_number || "";
+
+                const telegramId = String(m.id || m.telegram_id || tgUser?.id || "");
+                if (telegramId) {
+                    const { data: liveUserRow } = await supabase
+                        .from("users").select("username, phone").eq("telegram_id", telegramId).maybeSingle();
+                    if (liveUserRow) {
+                        if (liveUserRow.username) username = formatHandle(liveUserRow.username);
+                        if (liveUserRow.phone) phone = liveUserRow.phone.trim();
+                    }
+                }
+                document.getElementById("custEmail").value = session.user.email || "";
+            }
+
+            nameEl.value = fullName || "Telegram User";
+            userEl.value = username || "@user";
             if (phone && !phoneEl.value) phoneEl.value = phone;
-            document.getElementById("custEmail").value = session.user.email || "";
 
             const pendingAddress = sessionStorage.getItem("pending_address_text");
             if (pendingAddress && !addrEl.value) addrEl.value = pendingAddress;
@@ -3153,7 +3090,7 @@
             }
 
             await fetchCartSubProductDetails();
-            if (token !== cartRenderToken) return; // a newer render took over
+            if (token !== cartRenderToken) return;
 
             container.textContent = "";
             let subtotal = 0;
@@ -3258,223 +3195,81 @@
             saveCart(cart);
         }
 
-        function triggerOrderProcess(e) {
+        // Direct Bot Submission Flow
+        async function submitOrderToBot(e) {
             if (e) e.preventDefault();
             const t = cartTr[currentLang];
 
-            if (!currentUserSession) { modal.classList.add("active"); return; }
+            if (STORE_CLOSED) { setStoreClosed(true); return; }
 
-            if (getCart().length === 0) { showCustomAlert(t.alertEmptyCart); return; }
+            const cartItems = getCart();
+            if (cartItems.length === 0) { showCustomAlert(t.alertEmptyCart); return; }
 
             const phone = document.getElementById("custPhone").value.trim();
             if (phone && !/^[0-9+\-\s()]{8,15}$/.test(phone)) {
                 showCustomAlert(currentLang === "kh" ? "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ" : "Please enter a valid phone number.");
                 return;
             }
-            startPayment();
-        }
-        document.getElementById("btnSubmitOrder").addEventListener("click", triggerOrderProcess);
 
-        // ================= BAKONG KHQR PAYMENT =================
-        const payModal = document.getElementById("payModal");
-        let activePayment = null;
-        let payPollTimer = null;
-        let payCountdownTimer = null;
-        let payPolling = false;
-
-        const payText = () => currentLang === "kh" ? {
-            title: "បង់ប្រាក់តាម Bakong KHQR",
-            desc: "ស្កេនជាមួយ ABA, ACLEDA ឬកម្មវិធីធនាគារណាមួយដែលគាំទ្រ Bakong",
-            open: "បើកកម្មវិធីធនាគារ (ABA, ACLEDA...)",
-            wait: "កំពុងរង់ចាំការទូទាត់...",
-            cancel: "បោះបង់",
-            paid: "ការទូទាត់ជោគជ័យ! យើងនឹងទាក់ទងអ្នកវិញក្នុងពេលឆាប់ៗ។",
-            expired: "QR ផុតកំណត់ហើយ។ សូមចុចទូទាត់ម្តងទៀត។",
-            fail: "មិនអាចចាប់ផ្តើមការទូទាត់បានទេ។ សូមព្យាយាមម្តងទៀត។"
-        } : {
-            title: "Pay with Bakong KHQR",
-            desc: "Scan with ABA, ACLEDA or any Bakong bank app.",
-            open: "Open bank app (ABA, ACLEDA...)",
-            wait: "Waiting for payment...",
-            cancel: "Cancel",
-            paid: "Payment received! We will contact you shortly.",
-            expired: "This QR has expired. Please press pay again.",
-            fail: "Could not start the payment. Please try again."
-        };
-
-        function stopPayTimers() {
-            clearInterval(payPollTimer);
-            clearInterval(payCountdownTimer);
-            payPollTimer = null;
-            payCountdownTimer = null;
-        }
-
-        function closePayModal() {
-            stopPayTimers();
-            payModal.classList.remove("active");
-            activePayment = null;
-            localStorage.removeItem("pending_payment");
-        }
-
-        async function pollPayment() {
-            if (!activePayment || payPolling) return;
-            payPolling = true;
-            try {
-                const { data, error } = await supabase.functions.invoke("check-payment", {
-                    body: { order_id: activePayment.order_id }
-                });
-                if (error || !data) return;
-                if (data.status === "paid") {
-                    closePayModal();
-                    localStorage.removeItem("cart");
-                    updateCartBadge();
-                    if (currentMode() === "cart") renderCart();
-                    showSuccessModal(payText().paid, "", () => navigate(""));
-                } else if (data.status === "expired") {
-                    closePayModal();
-                    showCustomAlert(payText().expired);
-                }
-            } catch (e) {
-                console.error(e);
-            } finally {
-                payPolling = false;
-            }
-        }
-
-        function updateCountdown() {
-            if (!activePayment) return;
-            const left = Math.floor((new Date(activePayment.expires_at).getTime() - Date.now()) / 1000);
-            const timerEl = document.getElementById("payTimer");
-            if (left > 0) {
-                timerEl.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
-            } else {
-                timerEl.textContent = "00:00";
-                if (left < -30) { // 30 seconds of grace for the bank, then close
-                    closePayModal();
-                    showCustomAlert(payText().expired);
-                }
-            }
-        }
-
-        function openPayModal(p, autoOpenBankApp) {
-            if (!window.QRCode) { showCustomAlert(payText().fail); return; }
-            activePayment = p;
-            const tx = payText();
-            document.getElementById("payTitle").textContent = tx.title;
-            document.getElementById("payDesc").textContent = tx.desc;
-            document.getElementById("payOpenAppText").textContent = tx.open;
-            document.getElementById("payStatusText").textContent = tx.wait;
-            document.getElementById("payCancelBtn").textContent = tx.cancel;
-            document.getElementById("payAmount").textContent = "$" + Number(p.amount).toFixed(2);
-
-            window.QRCode.toDataURL(p.qr, { width: 240, margin: 1, errorCorrectionLevel: "M" }, (err, url) => {
-                if (!err) document.getElementById("payQrImg").src = url;
-            });
-
-            const openBtn = document.getElementById("payOpenAppBtn");
-            if (p.deeplink && /^https:\/\//.test(p.deeplink)) {
-                openBtn.href = p.deeplink;
-                openBtn.onclick = (ev) => { if (IN_TG) { ev.preventDefault(); openExternal(p.deeplink); } };
-                openBtn.style.display = "flex";
-            } else {
-                openBtn.style.display = "none";
-            }
-
-            payModal.classList.add("active");
-            updateCountdown();
-            stopPayTimers();
-            payCountdownTimer = setInterval(updateCountdown, 1000);
-            payPollTimer = setInterval(pollPayment, 3000);
-
-            // On a phone, go straight to the bank app
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            if (autoOpenBankApp && isMobile && openBtn.style.display !== "none") {
-                setTimeout(() => openExternal(p.deeplink), 700);
-            }
-        }
-
-        async function startPayment() {
-            if (STORE_CLOSED) { setStoreClosed(true); return; }
-            if (!currentUserSession) { modal.classList.add("active"); return; }
-            const items = getCart()
+            const itemsPayload = cartItems
                 .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
                 .filter(i => i.id);
-            if (items.length === 0) { showCustomAlert(cartTr[currentLang].alertEmptyCart); return; }
+
+            if (itemsPayload.length === 0) { showCustomAlert(t.alertEmptyCart); return; }
 
             const loading = document.getElementById("verifyLoadingModal");
             loading.classList.add("active");
+
             try {
-                const { data, error } = await supabase.functions.invoke("create-payment", {
-                    body: {
-                        items,
-                        address: document.getElementById("custAddress").value.trim(),
-                        phone: document.getElementById("custPhone").value.trim(),
-                        mapLink: pinnedLocationLink || ""
-                    }
-                });
-                if (error || !data?.qr) {
-                    let msg = payText().fail;
-                    try {
-                        const j = await error?.context?.json?.();
-                        if (j?.error) msg = j.error;
-                    } catch (_) { /* keep generic message */ }
-                    throw new Error(msg);
-                }
-                const payment = {
-                    order_id: data.order_id,
-                    qr: data.qr,
-                    deeplink: data.deeplink || null,
-                    amount: data.amount,
-                    expires_at: data.expires_at
+                const tgInitData = window.Telegram?.WebApp?.initData || "";
+                const payload = {
+                    items: itemsPayload,
+                    address: document.getElementById("custAddress").value.trim(),
+                    phone: phone,
+                    mapLink: pinnedLocationLink || "",
+                    init_data: tgInitData
                 };
-                localStorage.setItem("pending_payment", JSON.stringify(payment));
+
+                const { data, error } = await supabase.functions.invoke("smart-function", {
+                    body: payload
+                });
+
+                if (error || (data && data.error)) {
+                    let errMsg = t.alertErr;
+                    if (data?.error) errMsg += data.error;
+                    else if (error?.message) errMsg += error.message;
+                    throw new Error(errMsg);
+                }
+
                 loading.classList.remove("active");
-                openPayModal(payment, true);
+                localStorage.removeItem("cart");
+                updateCartBadge();
+                renderCart();
+
+                const successMsg = `${t.alertSuccess}\n${data.order_no ? 'Order #' + data.order_no : ''}`;
+                showSuccessModal(successMsg, t.successTitle, () => navigate(""));
             } catch (err) {
                 loading.classList.remove("active");
-                showCustomAlert(err.message || payText().fail);
-                console.error(err);
+                console.error("Order submission error:", err);
+                showCustomAlert(err.message || (t.alertErr + " Unknown error"));
             }
         }
 
-        // Coming back from the bank app (or reopening the cart): keep waiting for the payment
-        function resumePendingPayment() {
-            if (!currentUserSession || activePayment) return;
-            try {
-                const p = JSON.parse(localStorage.getItem("pending_payment") || "null");
-                if (p && p.order_id && p.qr && new Date(p.expires_at).getTime() > Date.now() - 30000) {
-                    openPayModal(p, false);
-                    pollPayment();
-                } else {
-                    localStorage.removeItem("pending_payment");
-                }
-            } catch (_) {
-                localStorage.removeItem("pending_payment");
-            }
-        }
-
-        document.getElementById("payCancelBtn").addEventListener("click", closePayModal);
+        document.getElementById("btnSubmitOrder").addEventListener("click", submitOrderToBot);
 
         async function enterCartView() {
             applyCartLanguage();
             await checkAuth();
             if (currentMode() !== "cart") return;
             renderCart();
-            resumePendingPayment();
         }
 
-        // Leaving the cart page: hide the QR popup but keep the pending payment so it resumes on return
         function leaveCartView() {
             cartRenderToken++;
-            if (activePayment) {
-                stopPayTimers();
-                payModal.classList.remove("active");
-                activePayment = null;
-            }
         }
 
         // =====================================================================
-        // ACCOUNT VIEW (was users.html)
+        // ACCOUNT VIEW
         // =====================================================================
         const userTr = {
             kh: {
@@ -3487,9 +3282,6 @@
                 loginTelegram: "ចូលគណនី Telegram",
                 btnHome: "ទំព័រដើម",
                 btnLogout: "ចាកចេញ",
-                phoneReqTitle: "តម្រូវឲ្យផ្ទៀងផ្ទាត់លេខទូរស័ព្ទ",
-                phoneReqDesc: "សូមផ្ទៀងផ្ទាត់លេខទូរស័ព្ទរបស់អ្នក ដើម្បីឲ្យយើងអាចទាក់ទងអ្នកអំពីការបញ្ជាទិញ។",
-                linkPhoneBot: "ភ្ជាប់លេខទូរស័ព្ទតាម Bot",
                 lblTelegramId: "Telegram ID",
                 lblPhone: "Phone Number",
                 lblStatus: "Status",
@@ -3506,9 +3298,6 @@
                 loginTelegram: "Log in with Telegram",
                 btnHome: "Home",
                 btnLogout: "Log Out",
-                phoneReqTitle: "Phone Verification Required",
-                phoneReqDesc: "Please verify your phone number so we can contact you regarding your orders.",
-                linkPhoneBot: "Link Phone Number via Bot",
                 lblTelegramId: "Telegram ID",
                 lblPhone: "Phone Number",
                 lblStatus: "Status",
@@ -3532,11 +3321,12 @@
             const container = document.getElementById("profileCard");
             const t = userTr[currentLang];
 
-            // The real login is the Supabase session (not browser storage)
             const { data: { session } } = await supabase.auth.getSession();
+            const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+
             if (currentMode() !== "account") return;
 
-            if (!session) {
+            if (!session && !tgUser) {
                 container.innerHTML = `
                     <div class="profile-avatar-wrapper">
                         <div class="profile-avatar-placeholder"><i class="bi bi-person fs-3"></i></div>
@@ -3549,21 +3339,22 @@
                 return;
             }
 
-            const m = session.user.user_metadata || {};
+            const m = session?.user?.user_metadata || {};
+            let fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(" ") : (m.full_name || m.name || "").trim();
+            let username = tgUser?.username ? formatHandle(tgUser.username) : (m.username ? formatHandle(m.username) : "No username");
+            let telegramId = tgUser?.id || m.telegram_id || m.id || "";
             let phoneValue = m.phone || "";
 
-            if (!phoneValue && m.telegram_id) {
+            if (!phoneValue && telegramId) {
                 try {
                     const { data: row } = await supabase
-                        .from("users").select("phone").eq("telegram_id", String(m.telegram_id)).maybeSingle();
+                        .from("users").select("phone").eq("telegram_id", String(telegramId)).maybeSingle();
                     if (row?.phone) phoneValue = row.phone;
-                } catch (_) { /* keep empty */ }
+                } catch (_) {}
             }
             if (currentMode() !== "account") return;
 
-            const fullName = (m.full_name || m.name || "").trim();
             const firstLetter = (fullName || "U").charAt(0);
-            const username = m.username ? `@${m.username}` : "No username";
             const phoneNumber = phoneValue || t.valNotVerified;
             const userAvatar = decodeHtmlEntities(m.avatar_url || "");
 
@@ -3591,7 +3382,7 @@
                 <div class="info-group">
                     <div class="info-row">
                         <span class="info-label">${t.lblTelegramId}</span>
-                        <span class="info-value font-monospace">${esc(m.telegram_id || "")}</span>
+                        <span class="info-value font-monospace">${esc(telegramId)}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">${t.lblPhone}</span>
@@ -3607,7 +3398,6 @@
                 <button id="logoutBtn" class="btn-custom-outline-danger"><i class="bi bi-box-arrow-right me-1"></i> ${t.btnLogout}</button>
             `;
 
-            // If the picture can not load, show the first letter instead
             document.getElementById("profileImg")?.addEventListener("error", (e) => {
                 e.target.style.display = "none";
                 const fb = document.getElementById("profileImgFallback");
@@ -3623,7 +3413,7 @@
             });
         }
 
-        // ---------- Start ----------
+        // ---------- Initialization ----------
         loadHeroBannerImage();
         applyLanguage();
         fetchNewArrivals();
