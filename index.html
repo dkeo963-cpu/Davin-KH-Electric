@@ -8,6 +8,16 @@
     <title>Davin Electric | Professional Technical Solutions</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        #storeClosedCover {
+            display: none; position: fixed; inset: 0; z-index: 100000;
+            align-items: center; justify-content: center; padding: 24px;
+            background: rgba(15, 23, 42, .96); color: #fff; text-align: center;
+        }
+        #storeClosedCover .closed-box { max-width: 340px; }
+        #storeClosedCover .closed-ic { font-size: 56px; line-height: 1; margin-bottom: 14px; }
+        #storeClosedCover h2 { font-size: 22px; font-weight: 800; margin: 0 0 10px; }
+        #storeClosedCover p { font-size: 14px; line-height: 1.6; color: #cbd5e1; margin: 0; white-space: pre-line; }
+        .hero-banner-image-box { transition: background-image .4s ease; }
         #logoutBtn { display: none !important; }
         html.tg-mini body { padding-bottom: env(safe-area-inset-bottom); }
     </style>
@@ -1376,6 +1386,15 @@
         <button type="button" class="promo-close-btn" onclick="document.getElementById('promoBar').style.display='none';">&times;</button>
     </div>
 
+    <!-- Store closed cover (controlled from the admin dashboard) -->
+    <div id="storeClosedCover" role="alert">
+        <div class="closed-box">
+            <div class="closed-ic">🔒</div>
+            <h2 id="storeClosedTitle">We are closed</h2>
+            <p id="storeClosedMsg"></p>
+        </div>
+    </div>
+
     <!-- 1. Top Header Navigation -->
     <header class="top-hero-header">
         <a href="index.html" class="brand-logo-text">
@@ -1774,6 +1793,56 @@
             }
         }, true);
 
+        // ================= STORE SETTINGS (set from the admin dashboard) =================
+        let storeOpen = true;
+        let closedMessage = "";
+        let bannerTimer = null;
+        let lastBannerSig = "";
+        const bannerUrl = (v) => `${SUPABASE_URL}/functions/v1/smart-function?f=${encodeURIComponent(String(v).slice(3))}`;
+
+        function applyStoreCover() {
+            const cover = document.getElementById("storeClosedCover");
+            if (!cover) return;
+            const kh = currentLang === "kh";
+            document.getElementById("storeClosedTitle").textContent = kh ? "ហាងបិទហើយ" : "We are closed";
+            document.getElementById("storeClosedMsg").textContent = closedMessage ||
+                (kh ? "សូមអភ័យទោស ហាងបិទបណ្ដោះអាសន្ន។ សូមត្រឡប់មកវិញពេលក្រោយ។" : "Sorry, the store is temporarily closed. Please come back later.");
+            cover.style.display = storeOpen ? "none" : "flex";
+            document.body.style.overflow = storeOpen ? "" : "hidden";
+        }
+
+        function applyBanners(list) {
+            const heroCard = document.getElementById("heroBannerCard");
+            if (!heroCard) return;
+            clearInterval(bannerTimer);
+            if (!list.length) { loadHeroBannerImage(); return; }   // no banner set: back to the default picture
+            const urls = list.map(bannerUrl);
+            urls.forEach((u) => { const im = new Image(); im.src = u; });
+            let i = 0;
+            const show = () => { heroCard.style.backgroundImage = `url('${urls[i]}')`; heroCard.textContent = ""; };
+            show();
+            if (urls.length > 1) bannerTimer = setInterval(() => { i = (i + 1) % urls.length; show(); }, 4000);
+        }
+
+        async function loadStoreSettings() {
+            try {
+                const { data, error } = await supabase.from("app_settings").select("key, value")
+                    .in("key", ["is_store_open", "closed_message", "banners"]);
+                if (error || !data) return;   // if settings can not be read, keep the store open
+                const get = (k) => data.find((r) => r.key === k)?.value;
+                const clean = (v) => String(v ?? "").replace(/^"|"$/g, "");
+                storeOpen = clean(get("is_store_open")).trim().toLowerCase() !== "false";
+                closedMessage = clean(get("closed_message")).trim();
+                applyStoreCover();
+
+                let b = get("banners");
+                try { if (typeof b === "string") b = JSON.parse(b); } catch (_) { b = []; }
+                const list = Array.isArray(b) ? b.filter((x) => typeof x === "string" && x.startsWith("tg:")) : [];
+                const sig = list.join("|");
+                if (sig !== lastBannerSig) { lastBannerSig = sig; applyBanners(list); }
+            } catch (e) { console.error("settings:", e); }
+        }
+
         const STORAGE_BUCKET = "project";
         const HERO_BANNER_FILE = "1. LOGO/hero banner*/x1.jpg";
         const HOME_TITLE = "Davin Electric | Professional Technical Solutions";
@@ -1987,6 +2056,7 @@
             renderNewArrivals();
             renderProducts();
             if (currentMode() === "cart") { renderCart(); updateUsernameGate(); }
+            applyStoreCover();
             if (currentMode() === "account") loadUserProfile();
             if (currentMode() === "detail" && mainProductData) {
                 renderProductDetails();
@@ -3172,6 +3242,7 @@
             const t = cartTr[currentLang];
             const kh = currentLang === "kh";
 
+            if (!storeOpen) { applyStoreCover(); return; }
             if (!IN_TG) {
                 showCustomAlert(kh ? "សូមបើកហាងនេះក្នុង Telegram ដើម្បីផ្ញើការបញ្ជាទិញ។" : "Please open this store inside Telegram to send your order.");
                 return;
@@ -3222,6 +3293,7 @@
                     try {
                         const j = await error?.context?.json?.();
                         if (j?.error) msg = j.error;
+                        if (j?.code === "store_closed") { storeOpen = false; closedMessage = j.error || ""; applyStoreCover(); }
                     } catch (_) { /* keep generic message */ }
                     throw new Error(msg);
                 }
@@ -3437,6 +3509,9 @@
         // ---------- Start ----------
         loadHeroBannerImage();
         applyLanguage();
+        loadStoreSettings();
+        setInterval(loadStoreSettings, 60000);
+        document.addEventListener("visibilitychange", () => { if (!document.hidden) loadStoreSettings(); });
         fetchNewArrivals();
         const categoriesReady = fetchCategories();
         route();
