@@ -1602,6 +1602,39 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="section-title mt-2"><i class="bi bi-truck me-1"></i> <span id="txtDeliveryTitle">Delivery</span></div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label" id="lblDeliveryType">Delivery to</label>
+                        <select class="form-select" id="custDeliveryType">
+                            <option value="phnom_penh" id="optPP">Phnom Penh</option>
+                            <option value="province" id="optProv">Province</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3" id="provinceBox" style="display:none;">
+                        <label class="form-label" id="lblProvince">Province *</label>
+                        <select class="form-select" id="custProvince">
+                            <option value="" id="optProvPick">Select province</option>
+                            <option>Banteay Meanchey</option><option>Battambang</option><option>Kampong Cham</option>
+                            <option>Kampong Chhnang</option><option>Kampong Speu</option><option>Kampong Thom</option>
+                            <option>Kampot</option><option>Kandal</option><option>Kep</option><option>Koh Kong</option>
+                            <option>Kratie</option><option>Mondulkiri</option><option>Oddar Meanchey</option><option>Pailin</option>
+                            <option>Preah Sihanouk</option><option>Preah Vihear</option><option>Prey Veng</option><option>Pursat</option>
+                            <option>Ratanakiri</option><option>Siem Reap</option><option>Stung Treng</option><option>Svay Rieng</option>
+                            <option>Takeo</option><option>Tboung Khmum</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3" id="courierBox" style="display:none;">
+                        <label class="form-label" id="lblCourier">Delivery service *</label>
+                        <select class="form-select" id="custCourier">
+                            <option value="" id="optCourierPick">Select service</option>
+                            <option value="VET">VET</option>
+                            <option value="ZTO">ZTO</option>
+                            <option value="LODA">Loda</option>
+                        </select>
+                    </div>
+                </div>
             </form>
 
             <div class="summary-box">
@@ -2884,15 +2917,15 @@
                 lblAddress: "អាសយដ្ឋានដឹកជញ្ជូន / ទីតាំង",
                 placeholderAddress: "ឧ. ផ្លូវ ២៧១ ភ្នំពេញ",
                 lblTotal: "សរុបរួម",
-                submitHint: "បង់ប្រាក់តាម ABA, ACLEDA ឬធនាគារដែលគាំទ្រ Bakong",
-                submitOrderBtn: "បង់ប្រាក់តាម Bakong KHQR",
+                submitHint: "ការបញ្ជាទិញនឹងផ្ញើទៅ Telegram ហាងរបស់យើង",
+                submitOrderBtn: "ផ្ញើការបញ្ជាទិញ",
                 emptyCart: "គ្មានទំនិញនៅក្នុងកន្ត្រករបស់អ្នកទេ។",
                 each: "ក្នុងមួយ",
                 alertEmptyCart: "កន្ត្រកទំនិញរបស់អ្នកទទេ! សូមបន្ថែមទំនិញមុននឹងបញ្ជាទិញ។",
                 alertRequired: "រកមិនឃើញលេខទូរស័ព្ទនៅក្នុងប្រវត្តិរូបគណនីរបស់អ្នកទេ។",
                 alertPhoneMismatch: "លេខទូរស័ព្ទមិនត្រូវគ្នានឹងគណនីដែលបានចុះឈ្មោះក្នុងប្រព័ន្ធទេ។ ការបញ្ជាទិញត្រូវបានបដិសេធ។",
                 alertMissingUsername: "តម្រូវឱ្យមាន Telegram Username! សូមបង្កើត Username នៅក្នុងគណនី Telegram របស់អ្នកជាមុនសិន មុនពេលបញ្ជាទិញ។",
-                alertSuccess: "ការបញ្ជាទិញត្រូវបានធ្វើទៅកាន់ Telegram ដោយជោគជ័យ!",
+                alertSuccess: "ការបញ្ជាទិញត្រូវបានផ្ញើទៅកាន់ហាងដោយជោគជ័យ!",
                 alertErr: "មានបញ្ហាក្នុងការផ្ញើការបញ្ជាទិញ៖ ",
                 outOfStock: "ចំនួនស្តុកមិនគ្រប់គ្រាន់សម្រាប់ ",
                 locFetching: "កំពុងទាញយកទីតាំង...",
@@ -2925,8 +2958,8 @@
                 lblAddress: "Delivery Address / Location",
                 placeholderAddress: "e.g. St 271, Phnom Penh",
                 lblTotal: "Total",
-                submitHint: "Pay with ABA, ACLEDA or any Bakong bank app",
-                submitOrderBtn: "Pay with Bakong KHQR",
+                submitHint: "Your order is sent to our Telegram store bot",
+                submitOrderBtn: "Send Order",
                 emptyCart: "Your cart is empty.",
                 each: "each",
                 alertEmptyCart: "Your shopping cart is empty! Please add products before placing an order.",
@@ -3049,15 +3082,17 @@
             set("lblTotal", t.lblTotal);
             set("txtSubmitHint", t.submitHint);
             set("txtSubmitOrderBtn", t.submitOrderBtn);
+            applyDeliveryLang();
             document.getElementById("custName").placeholder = t.placeholderName;
             document.getElementById("custUsername").placeholder = t.placeholderUsername;
             document.getElementById("custPhone").placeholder = t.placeholderPhone;
             document.getElementById("custAddress").placeholder = t.placeholderAddress;
         }
 
-        // Fill the contact form from the logged-in Supabase session
+        // Fill name + username automatically from the Telegram account
         async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
+            let session = null;
+            try { ({ data: { session } } = await supabase.auth.getSession()); } catch (_) {}
             currentUserSession = session;
 
             const nameEl = document.getElementById("custName");
@@ -3065,29 +3100,29 @@
             const phoneEl = document.getElementById("custPhone");
             const addrEl = document.getElementById("custAddress");
 
-            if (!session || !session.user) { nameEl.value = ""; userEl.value = ""; return; }
+            const tgUser = (IN_TG && tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
+            const m = (session && session.user && session.user.user_metadata) || {};
 
-            const m = session.user.user_metadata || {};
-            const telegramId = String(m.id || m.telegram_id || "");
-            let username = m.username || "";
+            const fullName = ([tgUser.first_name, tgUser.last_name].filter(Boolean).join(" ") || m.full_name || m.name || "").trim();
+            const username = String(tgUser.username || m.username || "").replace(/^@/, "").trim();
+
+            nameEl.value = fullName;
+            userEl.value = username ? `@${username}` : "";
+
             let phone = m.phone || m.phone_number || "";
-
-            if (telegramId) {
-                const { data: liveUserRow } = await supabase
-                    .from("users").select("username, phone").eq("telegram_id", telegramId).maybeSingle();
-                if (liveUserRow) {
-                    if (liveUserRow.username) username = liveUserRow.username.trim();
-                    if (liveUserRow.phone) phone = liveUserRow.phone.trim();
-                }
+            const telegramId = String(tgUser.id || m.id || m.telegram_id || "");
+            if (!phone && session && telegramId) {
+                try {
+                    const { data: row } = await supabase.from("users").select("phone").eq("telegram_id", telegramId).maybeSingle();
+                    if (row && row.phone) phone = row.phone.trim();
+                } catch (_) { /* keep empty */ }
             }
-
-            nameEl.value = (m.full_name || m.name || "User").trim();
-            if (username) userEl.value = `@${username}`;
             if (phone && !phoneEl.value) phoneEl.value = phone;
-            document.getElementById("custEmail").value = session.user.email || "";
 
             const pendingAddress = sessionStorage.getItem("pending_address_text");
             if (pendingAddress && !addrEl.value) addrEl.value = pendingAddress;
+
+            updateSendBtn();
         }
 
         async function fetchCartSubProductDetails() {
@@ -3224,20 +3259,118 @@
             saveCart(cart);
         }
 
-        function triggerOrderProcess(e) {
+        // ================= SEND ORDER TO THE STORE BOT =================
+        const DELIVERY_TXT = {
+            kh: { title: "ការដឹកជញ្ជូន", to: "ដឹកទៅ", pp: "ភ្នំពេញ", prov: "ខេត្ត", province: "ខេត្ត *", pickProv: "ជ្រើសរើសខេត្ត",
+                  courier: "សេវាដឹកជញ្ជូន *", pickCourier: "ជ្រើសរើសសេវា",
+                  needUser: "សូមកំណត់ Telegram Username ជាមុនសិន ទើបអាចបញ្ជាទិញបាន។",
+                  needProv: "សូមជ្រើសរើសខេត្ត។", needCourier: "សូមជ្រើសរើសសេវាដឹកជញ្ជូន (VET, ZTO ឬ Loda)។",
+                  needTg: "សូមបើកហាងនេះតាមរយៈ Telegram ដើម្បីបញ្ជាទិញ។", sending: "កំពុងផ្ញើការបញ្ជាទិញ...",
+                  sent: "ការបញ្ជាទិញត្រូវបានផ្ញើទៅហាងរួចរាល់។ លេខកូដ", fail: "មិនអាចផ្ញើការបញ្ជាទិញបានទេ។ សូមព្យាយាមម្តងទៀត។" },
+            en: { title: "Delivery", to: "Delivery to", pp: "Phnom Penh", prov: "Province", province: "Province *", pickProv: "Select province",
+                  courier: "Delivery service *", pickCourier: "Select service",
+                  needUser: "Please set a Telegram username first, then you can place an order.",
+                  needProv: "Please select your province.", needCourier: "Please select a delivery service (VET, ZTO or Loda).",
+                  needTg: "Please open this store from Telegram to place an order.", sending: "Sending your order...",
+                  sent: "Your order was sent to the store. Order no.", fail: "Could not send your order. Please try again." }
+        };
+        const dt = () => DELIVERY_TXT[currentLang] || DELIVERY_TXT.en;
+
+        function applyDeliveryLang() {
+            const d = dt();
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            set("txtDeliveryTitle", d.title); set("lblDeliveryType", d.to); set("optPP", d.pp); set("optProv", d.prov);
+            set("lblProvince", d.province); set("optProvPick", d.pickProv);
+            set("lblCourier", d.courier); set("optCourierPick", d.pickCourier);
+            updateSendBtn();
+        }
+
+        // Button works only when the Telegram username is filled
+        function updateSendBtn() {
+            const btn = document.getElementById("btnSubmitOrder");
+            if (!btn) return;
+            const hasUser = document.getElementById("custUsername").value.trim().length > 1;
+            btn.disabled = !hasUser;
+            btn.style.opacity = hasUser ? "" : "0.5";
+            btn.style.cursor = hasUser ? "" : "not-allowed";
+            const hint = document.getElementById("txtSubmitHint");
+            if (hint) hint.textContent = hasUser ? cartTr[currentLang].submitHint : dt().needUser;
+        }
+
+        document.getElementById("custDeliveryType").addEventListener("change", () => {
+            const prov = document.getElementById("custDeliveryType").value === "province";
+            document.getElementById("provinceBox").style.display = prov ? "" : "none";
+            document.getElementById("courierBox").style.display = prov ? "" : "none";
+        });
+
+        async function triggerOrderProcess(e) {
             if (e) e.preventDefault();
             const t = cartTr[currentLang];
+            const d = dt();
 
-            if (!currentUserSession) { showCustomAlert(currentLang === "kh" ? "សូមបើកគេហទំព័រនេះតាមរយៈ Telegram ដើម្បីបន្ត។" : "Please open this store from Telegram to continue."); return; }
+            if (STORE_CLOSED) { setStoreClosed(true); return; }
+            if (!document.getElementById("custUsername").value.trim()) { showCustomAlert(d.needUser); return; }
+            if (!IN_TG) { showCustomAlert(d.needTg); return; }
 
-            if (getCart().length === 0) { showCustomAlert(t.alertEmptyCart); return; }
+            const items = getCart()
+                .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
+                .filter(i => i.id);
+            if (items.length === 0) { showCustomAlert(t.alertEmptyCart); return; }
 
             const phone = document.getElementById("custPhone").value.trim();
             if (phone && !/^[0-9+\-\s()]{8,15}$/.test(phone)) {
                 showCustomAlert(currentLang === "kh" ? "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ" : "Please enter a valid phone number.");
                 return;
             }
-            startPayment();
+
+            const deliveryType = document.getElementById("custDeliveryType").value;
+            const province = document.getElementById("custProvince").value;
+            const courier = document.getElementById("custCourier").value;
+            if (deliveryType === "province") {
+                if (!province) { showCustomAlert(d.needProv); return; }
+                if (!courier) { showCustomAlert(d.needCourier); return; }
+            }
+
+            const btn = document.getElementById("btnSubmitOrder");
+            const loading = document.getElementById("verifyLoadingModal");
+            document.getElementById("verifyLoadingText").textContent = d.sending;
+            btn.disabled = true;
+            loading.classList.add("active");
+            try {
+                const { data, error } = await supabase.functions.invoke("smart-function", {
+                    body: {
+                        init_data: tg.initData,
+                        items,
+                        address: document.getElementById("custAddress").value.trim(),
+                        phone,
+                        mapLink: pinnedLocationLink || "",
+                        delivery_type: deliveryType,
+                        province: deliveryType === "province" ? province : "",
+                        courier: deliveryType === "province" ? courier : ""
+                    }
+                });
+                if (error || !data || !data.success) {
+                    let msg = d.fail;
+                    try {
+                        const j = await (error && error.context && error.context.json && error.context.json());
+                        if (j && j.error) msg = j.error;
+                    } catch (_) { /* keep generic message */ }
+                    if (!error && data && data.error) msg = data.error;
+                    throw new Error(msg);
+                }
+                loading.classList.remove("active");
+                saveCart([]);
+                sessionStorage.removeItem("pending_address_text");
+                sessionStorage.removeItem("pending_pinned_link");
+                pinnedLocationLink = "";
+                showSuccessModal(`${d.sent} #${data.order_no} — $${Number(data.total).toFixed(2)}`, "", () => navigate(""));
+            } catch (err) {
+                loading.classList.remove("active");
+                showCustomAlert(err.message || d.fail);
+                console.error(err);
+            } finally {
+                updateSendBtn();
+            }
         }
         document.getElementById("btnSubmitOrder").addEventListener("click", triggerOrderProcess);
 
@@ -3426,7 +3559,7 @@
             await checkAuth();
             if (currentMode() !== "cart") return;
             renderCart();
-            resumePendingPayment();
+            localStorage.removeItem("pending_payment");
         }
 
         // Leaving the cart page: hide the QR popup but keep the pending payment so it resumes on return
