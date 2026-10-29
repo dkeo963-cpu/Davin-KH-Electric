@@ -121,7 +121,7 @@ async function api(body) {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) {
       if (j.code === "NOT_ADMIN") showGate("⛔ មិនមានសិទ្ធិ / Not authorized", "គណនី Telegram នេះមិនមែនជា admin ទេ។ / This Telegram account is not an admin.");
-      if (j.code === "NOT_TELEGRAM") showGate("⏱️ សូមបើកឡើងវិញ / Please reopen", "សូមបិទ ហើយបើក dashboard ពី Telegram ម្តងទៀត។ / Close and reopen the dashboard from Telegram.");
+      if (j.code === "NOT_TELEGRAM") showGate("⏱️ សូមបើកឡើងវិញ / Please reopen", "សូមបិទ ហើយបើក dashboard ពី Telegram ម្តងទៀត។ / Close and reopen the dashboard from Telegram.\n[reason: " + (j.reason || "?") + "]");
       return { error: j.error || "Error " + r.status, code: j.code || "" };
     }
     return { data: j };
