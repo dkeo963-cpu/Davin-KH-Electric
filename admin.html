@@ -50,6 +50,14 @@ textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10
   background:#0f172a;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;transition:.2s;max-width:90%;z-index:20}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.err{background:var(--bad)} .toast.ok{background:var(--ok)}
+.in{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);color:var(--ink);font:inherit;margin:3px 0 8px}
+label.f{display:block;font-size:12px;color:var(--sub);margin-top:4px}
+.pr{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.pr img{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:8px;flex:none;border:1px solid var(--line)}
+.pr .t{flex:1;min-width:0;font-size:13px}.pr .t b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{background:var(--ok-l);color:var(--ok);border-radius:8px;padding:1px 7px;font-size:11px;margin-left:4px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:15}
+.sheet.show{display:flex}.sheet>div{background:var(--card);width:100%;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px))}
 </style>
 </head>
 <body>
@@ -73,6 +81,47 @@ textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10
     <button class="btn s" id="msg-save">រក្សាទុកសារ / Save message</button>
   </div>
 
+  <!-- Reload all customers -->
+  <div class="card">
+    <h2>🔄 ផ្ទុកទំព័រឡើងវិញ / Reload customers' page</h2>
+    <p class="muted" style="margin:0 0 12px">ចុចដើម្បីឲ្យអតិថិជនទាំងអស់ដែលកំពុងបើកហាង ផ្ទុកទំព័រដើមឡើងវិញ (ក្នុងរយៈពេលប្រហែល 15 វិនាទី)។<br>Tap to make every customer who has the store open reload the main page (within about 15 seconds).</p>
+    <button class="btn" id="reload-all">🔄 ផ្ទុកឡើងវិញគ្រប់គ្នា / Reload all users</button>
+  </div>
+
+  <!-- Promo bar -->
+  <div class="card">
+    <h2>📣 របារប្រូម៉ូសិនខាងលើ / Top promo bar</h2>
+    <label class="f"><input type="checkbox" id="pm-on"> បង្ហាញ / Show the bar</label>
+    <label class="f">Badge (e.g. Free Delivery)</label><input class="in" id="pm-badge" maxlength="40">
+    <label class="f">Message</label><textarea id="pm-text" maxlength="300" style="min-height:56px"></textarea>
+    <label class="f">Highlighted words (orange)</label><input class="in" id="pm-strong" maxlength="40">
+    <label class="f">Button text (empty = no button)</label><input class="in" id="pm-btn" maxlength="30">
+    <label class="f">Button link</label><input class="in" id="pm-url" maxlength="200" placeholder="index.html?products=all">
+    <button class="btn s" id="pm-save">រក្សាទុក / Save</button>
+  </div>
+
+  <!-- Hero text -->
+  <div class="card">
+    <h2>📝 អត្ថបទបដាធំ / Main banner text</h2>
+    <p class="muted" style="margin:0 0 6px">ទទេ = ប្រើអត្ថបទលំនាំដើម។ / Empty = default text.</p>
+    <label class="f">ខ្មែរ · Welcome line</label><input class="in" id="hr-badge_kh" maxlength="120">
+    <label class="f">ខ្មែរ · Title</label><textarea id="hr-title_kh" maxlength="300" style="min-height:56px"></textarea>
+    <label class="f">ខ្មែរ · Subtitle</label><textarea id="hr-sub_kh" maxlength="300" style="min-height:56px"></textarea>
+    <label class="f">English · Welcome line</label><input class="in" id="hr-badge_en" maxlength="120">
+    <label class="f">English · Title</label><textarea id="hr-title_en" maxlength="300" style="min-height:56px"></textarea>
+    <label class="f">English · Subtitle</label><textarea id="hr-sub_en" maxlength="300" style="min-height:56px"></textarea>
+    <button class="btn s" id="hr-save">រក្សាទុក / Save</button>
+  </div>
+
+  <!-- Products -->
+  <div class="card">
+    <h2>📦 ផលិតផល / Products &amp; New Arrival</h2>
+    <p class="muted" style="margin:0 0 8px">កែរូប ស្តុក តម្លៃ ឈ្មោះ។ ជ្រើស «New Arrival» ១-៣ ដើម្បីបង្ហាញលើទំព័រដើម (sub-products)។<br>Edit picture, stock, price, name. Set "New Arrival" 1–3 on a sub-product to show it on the main page.</p>
+    <div class="row"><button class="btn s" id="pt-sub">Sub-products</button><button class="btn g s" id="pt-main">Products</button></div>
+    <input class="in" id="pr-search" placeholder="🔍 Search / ស្វែងរក">
+    <div id="pr-list" class="muted">…</div>
+  </div>
+
   <!-- Banners -->
   <div class="card">
     <h2>🖼️ រូបបដាទំព័រដើម / Main page banners</h2>
@@ -83,6 +132,7 @@ textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10
   </div>
 </div>
 
+<div id="ed" class="sheet"><div id="ed-body"></div></div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -174,6 +224,85 @@ $("msg-save").onclick = async () => {
   toast(r.error || "បានរក្សាទុក / Saved", r.error ? "err" : "ok");
 };
 
+/* ============ RELOAD ALL USERS ============ */
+$("reload-all").onclick = async () => {
+  if (!(await askConfirm("ផ្ទុកទំព័រអតិថិជនទាំងអស់ឡើងវិញ?\nReload the page for all customers?"))) return;
+  $("reload-all").disabled = true;
+  const r = await api({ action: "admin_set", key: "reload_token", value: String(Date.now()) });
+  $("reload-all").disabled = false;
+  toast(r.error || "បានផ្ញើហើយ / Sent — customers will reload shortly", r.error ? "err" : "ok");
+};
+
+/* ============ PROMO + HERO TEXT ============ */
+function fillForm(prefix, o, keys) { keys.forEach((k) => { const el = $(prefix + k); if (el) el.value = o[k] ?? ""; }); }
+function readForm(prefix, keys) { const o = {}; keys.forEach((k) => { o[k] = $(prefix + k).value.trim(); }); return o; }
+const PM_KEYS = ["badge", "text", "strong", "btn", "url"], HR_KEYS = ["badge_kh", "title_kh", "sub_kh", "badge_en", "title_en", "sub_en"];
+$("pm-save").onclick = async () => {
+  const o = readForm("pm-", PM_KEYS); o.on = $("pm-on").checked;
+  const r = await api({ action: "admin_set", key: "promo", value: JSON.stringify(o) });
+  toast(r.error || "បានរក្សាទុក / Saved", r.error ? "err" : "ok");
+};
+$("hr-save").onclick = async () => {
+  const r = await api({ action: "admin_set", key: "hero", value: JSON.stringify(readForm("hr-", HR_KEYS)) });
+  toast(r.error || "បានរក្សាទុក / Saved", r.error ? "err" : "ok");
+};
+
+/* ============ PRODUCTS / SUB-PRODUCTS ============ */
+const pubImg = (p) => !p ? "" : /^https?:/.test(p) ? p : `${SUPABASE_URL}/storage/v1/object/public/project/${p}`;
+let PTABLE = "sub_products", PR = [];
+async function loadProducts() {
+  $("pr-list").textContent = "…";
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${PTABLE}?select=*&order=id.asc&limit=500`, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY } });
+  PR = r.ok ? await r.json() : [];
+  if (!r.ok) $("pr-list").textContent = "Could not load (permission?)";
+  else renderProducts();
+}
+const imgKey = (row) => "image_url" in row ? "image_url" : ("image" in row ? "image" : null);
+function renderProducts() {
+  const q = $("pr-search").value.trim().toLowerCase();
+  const list = PR.filter((p) => !q || (String(p.name ?? "") + " " + String(p.name_kh ?? "")).toLowerCase().includes(q));
+  $("pr-list").innerHTML = list.length ? list.map((p) => `<div class="pr">
+      <img src="${esc(pubImg(p[imgKey(p)] || ""))}" alt="">
+      <div class="t"><b>${esc(p.name || p.name_kh || p.id)}${p.new_arrival ? `<span class="tag">NEW #${esc(p.new_arrival)}</span>` : ""}</b>
+        $${esc(p.price ?? "-")} · stock: ${esc(p.stock ?? "∞")}</div>
+      <button class="btn g s" data-edit="${esc(p.id)}">✏️</button></div>`).join("") : "No products";
+}
+$("pr-search").oninput = renderProducts;
+function setTable(t) { PTABLE = t; $("pt-sub").className = "btn s" + (t === "sub_products" ? "" : " g"); $("pt-main").className = "btn s" + (t === "products" ? "" : " g"); loadProducts(); }
+$("pt-sub").onclick = () => setTable("sub_products"); $("pt-main").onclick = () => setTable("products");
+
+let EDROW = null, NEWIMG = null;
+$("pr-list").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-edit]"); if (!b) return;
+  EDROW = PR.find((p) => String(p.id) === b.dataset.edit); NEWIMG = null; if (!EDROW) return;
+  const ik = imgKey(EDROW), f = (k, lbl, type = "text") => (k in EDROW) ? `<label class="f">${lbl}</label><input class="in" id="ed-${k}" type="${type}" ${type === "number" ? 'step="any" min="0" inputmode="decimal"' : ""} value="${esc(EDROW[k] ?? "")}">` : "";
+  $("ed-body").innerHTML = `<h2>✏️ ${esc(EDROW.name || EDROW.id)}</h2>
+    ${ik ? `<div class="row"><img id="ed-img" src="${esc(pubImg(EDROW[ik] || ""))}" alt=""><button class="btn g s" id="ed-pick">📷 ប្តូររូប / Change picture</button></div>` : ""}
+    ${f("name", "Name")}${f("name_kh", "ឈ្មោះ (ខ្មែរ)")}${f("price", "Price ($)", "number")}${f("stock", "Stock (empty = unlimited)", "number")}
+    ${"new_arrival" in EDROW ? `<label class="f">New Arrival (main page)</label><select class="in" id="ed-new_arrival">${[["", "— Not shown"], ["1", "Show #1"], ["2", "Show #2"], ["3", "Show #3"]].map(([v, l]) => `<option value="${v}"${String(EDROW.new_arrival ?? "") === v ? " selected" : ""}>${l}</option>`).join("")}</select>` : ""}
+    <div class="row" style="margin-top:8px"><button class="btn" id="ed-save">រក្សាទុក / Save</button><button class="btn g" id="ed-cancel">បោះបង់ / Cancel</button></div>`;
+  $("ed").classList.add("show");
+  $("ed-cancel").onclick = () => $("ed").classList.remove("show");
+  if ($("ed-pick")) $("ed-pick").onclick = async () => {
+    const b64 = await pickImage(); if (!b64) return;
+    toast("កំពុងផ្ទុកឡើង… / Uploading…");
+    const up = await api({ action: "admin_upload_product_image", data: b64 });
+    if (up.error) return toast(up.error, "err");
+    NEWIMG = up.data.path; $("ed-img").src = pubImg(NEWIMG); toast("រូបរួចរាល់ / Picture ready — press Save", "ok");
+  };
+  $("ed-save").onclick = async () => {
+    const fields = {};
+    ["name", "name_kh"].forEach((k) => { if ($("ed-" + k)) fields[k] = $("ed-" + k).value.trim(); });
+    ["price", "stock", "new_arrival"].forEach((k) => { const el = $("ed-" + k); if (el) fields[k] = el.value === "" && k !== "price" ? null : el.value; });
+    if (NEWIMG && ik) fields[ik] = NEWIMG;
+    $("ed-save").disabled = true;
+    const r = await api({ action: "admin_update_product", table: PTABLE, id: String(EDROW.id), fields });
+    $("ed-save").disabled = false;
+    if (r.error) return toast(r.error, "err");
+    toast("បានរក្សាទុក / Saved", "ok"); $("ed").classList.remove("show"); loadProducts();
+  };
+});
+
 /* ============ BANNERS (pictures stored in Telegram) ============ */
 let BN = [];
 function renderBanners() {
@@ -229,13 +358,18 @@ $("bn-list").addEventListener("click", async (e) => {
 
 /* ============ START ============ */
 async function load() {
-  const rows = await readSettings(["is_store_open", "closed_message", "banners"]);
+  const rows = await readSettings(["is_store_open", "closed_message", "banners", "promo", "hero"]);
   const get = (k) => rows.find((r) => r.key === k)?.value;
   storeOpen = clean(get("is_store_open")).trim().toLowerCase() !== "false";
   $("closed-msg").value = clean(get("closed_message"));
   let b = get("banners"); try { if (typeof b === "string") b = JSON.parse(b); } catch (_) { b = []; }
   BN = Array.isArray(b) ? b.filter((x) => typeof x === "string" && x.startsWith("tg:")) : [];
   paintStore(); renderBanners();
+  const J = (k) => { let v = get(k); try { if (typeof v === "string") v = JSON.parse(v); } catch (_) { v = null; } return v && typeof v === "object" ? v : {}; };
+  const pm = J("promo"); fillForm("pm-", pm, PM_KEYS); $("pm-on").checked = pm.on !== false;
+  if (!("badge" in pm)) { $("pm-badge").value = "Free Delivery"; $("pm-text").value = "we will free delivery for more than 10items for you at every products"; $("pm-strong").value = "check it now"; $("pm-btn").value = "Get Started"; $("pm-url").value = "index.html?products=all"; }
+  fillForm("hr-", J("hero"), HR_KEYS);
+  setTable("sub_products");
 }
 
 (async function start() {
