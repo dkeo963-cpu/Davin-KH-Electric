@@ -1613,17 +1613,8 @@
                         </select>
                     </div>
                     <div class="col-md-4 mb-3" id="provinceBox" style="display:none;">
-                        <label class="form-label" id="lblProvince">Province *</label>
-                        <select class="form-select" id="custProvince">
-                            <option value="" id="optProvPick">Select province</option>
-                            <option>Banteay Meanchey</option><option>Battambang</option><option>Kampong Cham</option>
-                            <option>Kampong Chhnang</option><option>Kampong Speu</option><option>Kampong Thom</option>
-                            <option>Kampot</option><option>Kandal</option><option>Kep</option><option>Koh Kong</option>
-                            <option>Kratie</option><option>Mondulkiri</option><option>Oddar Meanchey</option><option>Pailin</option>
-                            <option>Preah Sihanouk</option><option>Preah Vihear</option><option>Prey Veng</option><option>Pursat</option>
-                            <option>Ratanakiri</option><option>Siem Reap</option><option>Stung Treng</option><option>Svay Rieng</option>
-                            <option>Takeo</option><option>Tboung Khmum</option>
-                        </select>
+                        <label class="form-label" id="lblProvince">Where to deliver *</label>
+                        <input type="text" class="form-control" id="custDestination" maxlength="200" placeholder="e.g. Siem Reap, Svay Dangkum, near Old Market">
                     </div>
                     <div class="col-md-4 mb-3" id="courierBox" style="display:none;">
                         <label class="form-label" id="lblCourier">Delivery service *</label>
@@ -3261,16 +3252,16 @@
 
         // ================= SEND ORDER TO THE STORE BOT =================
         const DELIVERY_TXT = {
-            kh: { title: "ការដឹកជញ្ជូន", to: "ដឹកទៅ", pp: "ភ្នំពេញ", prov: "ខេត្ត", province: "ខេត្ត *", pickProv: "ជ្រើសរើសខេត្ត",
+            kh: { title: "ការដឹកជញ្ជូន", to: "ដឹកទៅ", pp: "ភ្នំពេញ", prov: "ខេត្ត", province: "ទីកន្លែងដែលចង់ឱ្យដឹកទៅ *", destPh: "ឧ. សៀមរាប សង្កាត់ស្វាយដង្គំ ជិតផ្សារចាស់",
                   courier: "សេវាដឹកជញ្ជូន *", pickCourier: "ជ្រើសរើសសេវា",
                   needUser: "សូមកំណត់ Telegram Username ជាមុនសិន ទើបអាចបញ្ជាទិញបាន។",
-                  needProv: "សូមជ្រើសរើសខេត្ត។", needCourier: "សូមជ្រើសរើសសេវាដឹកជញ្ជូន (VET, ZTO ឬ Loda)។",
+                  needProv: "សូមសរសេរទីកន្លែងដែលអ្នកចង់ឱ្យដឹកទៅ។", needCourier: "សូមជ្រើសរើសសេវាដឹកជញ្ជូន (VET, ZTO ឬ Loda)។",
                   needTg: "សូមបើកហាងនេះតាមរយៈ Telegram ដើម្បីបញ្ជាទិញ។", sending: "កំពុងផ្ញើការបញ្ជាទិញ...",
                   sent: "ការបញ្ជាទិញត្រូវបានផ្ញើទៅហាងរួចរាល់។ លេខកូដ", fail: "មិនអាចផ្ញើការបញ្ជាទិញបានទេ។ សូមព្យាយាមម្តងទៀត។" },
-            en: { title: "Delivery", to: "Delivery to", pp: "Phnom Penh", prov: "Province", province: "Province *", pickProv: "Select province",
+            en: { title: "Delivery", to: "Delivery to", pp: "Phnom Penh", prov: "Province", province: "Where to deliver *", destPh: "e.g. Siem Reap, Svay Dangkum, near Old Market",
                   courier: "Delivery service *", pickCourier: "Select service",
                   needUser: "Please set a Telegram username first, then you can place an order.",
-                  needProv: "Please select your province.", needCourier: "Please select a delivery service (VET, ZTO or Loda).",
+                  needProv: "Please write exactly where you want us to deliver.", needCourier: "Please select a delivery service (VET, ZTO or Loda).",
                   needTg: "Please open this store from Telegram to place an order.", sending: "Sending your order...",
                   sent: "Your order was sent to the store. Order no.", fail: "Could not send your order. Please try again." }
         };
@@ -3280,7 +3271,8 @@
             const d = dt();
             const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
             set("txtDeliveryTitle", d.title); set("lblDeliveryType", d.to); set("optPP", d.pp); set("optProv", d.prov);
-            set("lblProvince", d.province); set("optProvPick", d.pickProv);
+            set("lblProvince", d.province);
+            const dest = document.getElementById("custDestination"); if (dest) dest.placeholder = d.destPh;
             set("lblCourier", d.courier); set("optCourierPick", d.pickCourier);
             updateSendBtn();
         }
@@ -3324,10 +3316,10 @@
             }
 
             const deliveryType = document.getElementById("custDeliveryType").value;
-            const province = document.getElementById("custProvince").value;
+            const destination = document.getElementById("custDestination").value.trim();
             const courier = document.getElementById("custCourier").value;
             if (deliveryType === "province") {
-                if (!province) { showCustomAlert(d.needProv); return; }
+                if (!destination) { showCustomAlert(d.needProv); return; }
                 if (!courier) { showCustomAlert(d.needCourier); return; }
             }
 
@@ -3345,7 +3337,7 @@
                         phone,
                         mapLink: pinnedLocationLink || "",
                         delivery_type: deliveryType,
-                        province: deliveryType === "province" ? province : "",
+                        destination: deliveryType === "province" ? destination : "",
                         courier: deliveryType === "province" ? courier : ""
                     }
                 });
