@@ -8,7 +8,7 @@
     <title>Davin Electric | Professional Technical Solutions</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        html.tg-mini #logoutBtn { display: none !important; }
+        .account-trigger-btn, #logoutBtn { display: none !important; }
         html.tg-mini body { padding-bottom: env(safe-area-inset-bottom); }
     </style>
     <script>
@@ -1743,30 +1743,6 @@
             window.open(url, "_blank", "noopener");
         }
 
-        // Silent login: Telegram already knows who the user is
-        let miniLoginPromise = null;
-        function miniAppLogin(force = false) {
-            if (!IN_TG) return Promise.resolve(false);
-            if (!miniLoginPromise || force) miniLoginPromise = (async () => {
-                try {
-                    if (!force) {
-                        const { data: { session } } = await supabase.auth.getSession();
-                        const sameUser = String(session?.user?.user_metadata?.telegram_id || "") === String(tg.initDataUnsafe?.user?.id || "");
-                        if (session && sameUser) return true;
-                    }
-                    const { data, error } = await supabase.functions.invoke("telegram-miniapp-login", {
-                        body: { init_data: tg.initData }
-                    });
-                    if (error || !data?.token_hash) { console.error("mini app login failed:", error || data); return false; }
-                    let { error: otpErr } = await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" });
-                    if (otpErr) ({ error: otpErr } = await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "email" }));
-                    if (otpErr) { console.error("verifyOtp failed:", otpErr); return false; }
-                    return true;
-                } catch (e) { console.error(e); return false; }
-            })();
-            return miniLoginPromise;
-        }
-
         // Telegram's own Back button follows the in-page navigation
         function updateBackButton() {
             if (!IN_TG || !tg.BackButton) return;
@@ -1795,17 +1771,11 @@
             navigator.geolocation.getCurrentPosition(ok, fail, opts);
         }
 
-        // Login links and external links behave correctly inside Telegram
+        // External links open correctly inside Telegram
         document.addEventListener("click", (e) => {
             if (!IN_TG) return;
             const a = e.target.closest("a[href]");
-            if (!a) return;
-            if (/\/login\.html($|[?#])/.test(a.href)) {
-                e.preventDefault(); e.stopImmediatePropagation();
-                miniAppLogin(true).then((ok) => { if (ok) navigate("?view=account"); });
-                return;
-            }
-            if (a.target === "_blank" && /^https?:/i.test(a.href)) {
+            if (a && a.target === "_blank" && /^https?:/i.test(a.href)) {
                 e.preventDefault();
                 openExternal(a.href);
             }
@@ -2023,7 +1993,7 @@
             renderSubnavCategories();
             renderNewArrivals();
             renderProducts();
-            if (currentMode() === "cart") renderCart();
+            if (currentMode() === "cart") { renderCart(); updateUsernameGate(); }
             if (currentMode() === "account") loadUserProfile();
             if (currentMode() === "detail" && mainProductData) {
                 renderProductDetails();
@@ -2840,7 +2810,7 @@
                 placeholderAddress: "ឧ. ផ្លូវ ២៧១ ភ្នំពេញ",
                 lblTotal: "សរុបរួម",
                 submitHint: "បង់ប្រាក់តាម ABA, ACLEDA ឬធនាគារដែលគាំទ្រ Bakong",
-                submitOrderBtn: "បង់ប្រាក់តាម Bakong KHQR",
+                submitOrderBtn: "ផ្ញើការបញ្ជាទិញ",
                 emptyCart: "គ្មានទំនិញនៅក្នុងកន្ត្រករបស់អ្នកទេ។",
                 each: "ក្នុងមួយ",
                 alertEmptyCart: "កន្ត្រកទំនិញរបស់អ្នកទទេ! សូមបន្ថែមទំនិញមុននឹងបញ្ជាទិញ។",
@@ -2881,7 +2851,7 @@
                 placeholderAddress: "e.g. St 271, Phnom Penh",
                 lblTotal: "Total",
                 submitHint: "Pay with ABA, ACLEDA or any Bakong bank app",
-                submitOrderBtn: "Pay with Bakong KHQR",
+                submitOrderBtn: "Send Order",
                 emptyCart: "Your cart is empty.",
                 each: "each",
                 alertEmptyCart: "Your shopping cart is empty! Please add products before placing an order.",
@@ -3010,36 +2980,51 @@
             document.getElementById("custAddress").placeholder = t.placeholderAddress;
         }
 
-        // Fill the contact form from the logged-in Supabase session
+        // Lock the Send button until the customer has a Telegram username
+        function updateUsernameGate() {
+            const btn = document.getElementById("btnSubmitOrder");
+            if (!btn) return;
+            const kh = currentLang === "kh";
+            const hasUsername = !!(IN_TG && tg.initDataUnsafe?.user?.username);
+            const blocked = !hasUsername;
+
+            btn.disabled = blocked;
+            btn.style.opacity = blocked ? "0.45" : "";
+            btn.style.cursor = blocked ? "not-allowed" : "";
+
+            let warn = document.getElementById("usernameWarning");
+            if (!warn) {
+                warn = document.createElement("div");
+                warn.id = "usernameWarning";
+                warn.setAttribute("role", "alert");
+                warn.style.cssText = "margin:12px 0;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.5;background:rgba(220,38,38,.10);border:1px solid rgba(220,38,38,.35);color:#dc2626;";
+                btn.closest(".checkout-action")?.before(warn);
+            }
+            if (!blocked) { warn.style.display = "none"; return; }
+            warn.style.display = "block";
+            warn.textContent = IN_TG
+                ? (kh ? "អ្នកត្រូវមាន Telegram Username ដើម្បីបញ្ជាទិញ។ សូមកំណត់វាក្នុង Telegram Settings → Username រួចបើកហាងនេះម្តងទៀត។"
+                      : "You need a Telegram username to order. Set one in Telegram Settings → Username, then reopen this store.")
+                : (kh ? "សូមបើកហាងនេះក្នុង Telegram ដើម្បីបញ្ជាទិញ។" : "Please open this store inside Telegram to order.");
+        }
+
+        // Fill the contact form from Telegram (no login needed)
         async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
-            currentUserSession = session;
+            const u = IN_TG ? tg.initDataUnsafe?.user : null;
+            currentUserSession = u ? { tg_user: u } : null;
+            updateUsernameGate();
 
             const nameEl = document.getElementById("custName");
             const userEl = document.getElementById("custUsername");
             const phoneEl = document.getElementById("custPhone");
             const addrEl = document.getElementById("custAddress");
 
-            if (!session || !session.user) { nameEl.value = ""; userEl.value = ""; return; }
+            if (!u) { nameEl.value = ""; userEl.value = ""; return; }
 
-            const m = session.user.user_metadata || {};
-            const telegramId = String(m.id || m.telegram_id || "");
-            let username = m.username || "";
-            let phone = m.phone || m.phone_number || "";
-
-            if (telegramId) {
-                const { data: liveUserRow } = await supabase
-                    .from("users").select("username, phone").eq("telegram_id", telegramId).maybeSingle();
-                if (liveUserRow) {
-                    if (liveUserRow.username) username = liveUserRow.username.trim();
-                    if (liveUserRow.phone) phone = liveUserRow.phone.trim();
-                }
-            }
-
-            nameEl.value = (m.full_name || m.name || "User").trim();
-            if (username) userEl.value = `@${username}`;
-            if (phone && !phoneEl.value) phoneEl.value = phone;
-            document.getElementById("custEmail").value = session.user.email || "";
+            nameEl.value = `${u.first_name || ""} ${u.last_name || ""}`.trim() || "User";
+            userEl.value = u.username ? `@${u.username}` : "";
+            userEl.placeholder = currentLang === "kh" ? "សូមកំណត់ Username ក្នុង Telegram Settings" : "Set a username in Telegram Settings";
+            if (!phoneEl.value) phoneEl.value = localStorage.getItem("cust_phone") || "";
 
             const pendingAddress = sessionStorage.getItem("pending_address_text");
             if (pendingAddress && !addrEl.value) addrEl.value = pendingAddress;
@@ -3182,17 +3167,81 @@
         function triggerOrderProcess(e) {
             if (e) e.preventDefault();
             const t = cartTr[currentLang];
+            const kh = currentLang === "kh";
 
-            if (!currentUserSession) { modal.classList.add("active"); return; }
-
+            if (!IN_TG) {
+                showCustomAlert(kh ? "សូមបើកហាងនេះក្នុង Telegram ដើម្បីផ្ញើការបញ្ជាទិញ។" : "Please open this store inside Telegram to send your order.");
+                return;
+            }
+            const u = tg.initDataUnsafe?.user;
+            if (!u || !u.username) {
+                showCustomAlert(kh
+                    ? "អ្នកត្រូវមាន Telegram Username ដើម្បីបញ្ជាទិញ។ សូមកំណត់វាក្នុង Telegram Settings រួចព្យាយាមម្តងទៀត។"
+                    : "You need a Telegram username to order. Please set one in Telegram Settings, then try again.");
+                return;
+            }
             if (getCart().length === 0) { showCustomAlert(t.alertEmptyCart); return; }
 
             const phone = document.getElementById("custPhone").value.trim();
             if (phone && !/^[0-9+\-\s()]{8,15}$/.test(phone)) {
-                showCustomAlert(currentLang === "kh" ? "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ" : "Please enter a valid phone number.");
+                showCustomAlert(kh ? "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ" : "Please enter a valid phone number.");
                 return;
             }
-            startPayment();
+            sendOrder();
+        }
+
+        // Send the cart to the store owner's Telegram
+        let sendingOrder = false;
+        async function sendOrder() {
+            if (sendingOrder) return;
+            const kh = currentLang === "kh";
+            const items = getCart()
+                .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
+                .filter(i => i.id);
+            if (items.length === 0) { showCustomAlert(cartTr[currentLang].alertEmptyCart); return; }
+
+            sendingOrder = true;
+            const loading = document.getElementById("verifyLoadingModal");
+            loading.classList.add("active");
+            try {
+                const phone = document.getElementById("custPhone").value.trim();
+                const { data, error } = await supabase.functions.invoke("send-order", {
+                    body: {
+                        init_data: tg.initData,
+                        items,
+                        address: document.getElementById("custAddress").value.trim(),
+                        phone,
+                        mapLink: pinnedLocationLink || ""
+                    }
+                });
+                if (error || !data?.success) {
+                    let msg = kh ? "មិនអាចផ្ញើការបញ្ជាទិញបានទេ។ សូមព្យាយាមម្តងទៀត។" : "Could not send your order. Please try again.";
+                    try {
+                        const j = await error?.context?.json?.();
+                        if (j?.error) msg = j.error;
+                    } catch (_) { /* keep generic message */ }
+                    throw new Error(msg);
+                }
+                loading.classList.remove("active");
+                if (phone) localStorage.setItem("cust_phone", phone);
+                saveCart([]);
+                pinnedLocationLink = "";
+                sessionStorage.removeItem("pending_pinned_link");
+                sessionStorage.removeItem("pending_address_text");
+                document.getElementById("custAddress").value = "";
+                showSuccessModal(
+                    kh ? "ការបញ្ជាទិញរបស់អ្នកត្រូវបានផ្ញើទៅហាងរួចហើយ។ យើងនឹងទាក់ទងអ្នកតាម Telegram ឆាប់ៗនេះ។"
+                       : "Your order was sent to the store. We will contact you on Telegram soon.",
+                    kh ? "ការបញ្ជាទិញត្រូវបានផ្ញើ" : "Order sent",
+                    () => navigate("")
+                );
+            } catch (err) {
+                loading.classList.remove("active");
+                showCustomAlert(err.message);
+                console.error(err);
+            } finally {
+                sendingOrder = false;
+            }
         }
         document.getElementById("btnSubmitOrder").addEventListener("click", triggerOrderProcess);
 
@@ -3359,7 +3408,8 @@
 
         // Coming back from the bank app (or reopening the cart): keep waiting for the payment
         function resumePendingPayment() {
-            if (!currentUserSession || activePayment) return;
+            localStorage.removeItem("pending_payment");
+            return;
             try {
                 const p = JSON.parse(localStorage.getItem("pending_payment") || "null");
                 if (p && p.order_id && p.qr && new Date(p.expires_at).getTime() > Date.now() - 30000) {
@@ -3548,7 +3598,6 @@
         applyLanguage();
         fetchNewArrivals();
         const categoriesReady = fetchCategories();
-        await Promise.race([miniAppLogin(), new Promise((r) => setTimeout(r, 8000))]);
         route();
     </script>
 </body>
