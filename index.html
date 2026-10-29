@@ -8,7 +8,7 @@
     <title>Davin Electric | Professional Technical Solutions</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        .account-trigger-btn, #logoutBtn { display: none !important; }
+        #logoutBtn { display: none !important; }
         html.tg-mini body { padding-bottom: env(safe-area-inset-bottom); }
     </style>
     <script>
@@ -2103,14 +2103,9 @@
         document.getElementById("modalCancelBtn")?.addEventListener("click", () => modal.classList.remove("active"));
         modal?.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("active"); });
 
-        async function handleAccountClick(e) {
+        function handleAccountClick(e) {
             e.preventDefault();
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                navigate("?view=account");
-            } else {
-                modal.classList.add("active");
-            }
+            navigate("?view=account");
         }
         document.querySelectorAll(".account-trigger-btn").forEach(btn => btn.addEventListener("click", handleAccountClick));
 
@@ -3131,6 +3126,21 @@
             });
 
             document.getElementById("totalVal").textContent = `$${subtotal.toFixed(2)}`;
+            showServerTotal();
+        }
+
+        // The total shown (and the one used for the order) is calculated on the server
+        async function showServerTotal() {
+            const items = getCart()
+                .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
+                .filter(i => i.id);
+            if (items.length === 0) return;
+            try {
+                const { data } = await supabase.functions.invoke("send-order", { body: { action: "quote", items } });
+                if (data && data.total != null && currentMode() === "cart") {
+                    document.getElementById("totalVal").textContent = `$${Number(data.total).toFixed(2)}`;
+                }
+            } catch (_) { /* keep the local total */ }
         }
 
         function updateQty(index, change) {
@@ -3501,96 +3511,29 @@
         async function loadUserProfile() {
             const container = document.getElementById("profileCard");
             const t = userTr[currentLang];
-
-            // The real login is the Supabase session (not browser storage)
-            const { data: { session } } = await supabase.auth.getSession();
+            const kh = currentLang === "kh";
             if (currentMode() !== "account") return;
 
-            if (!session) {
+            const u = IN_TG ? tg.initDataUnsafe?.user : null;
+            if (!u) {
                 container.innerHTML = `
                     <div class="profile-avatar-wrapper">
                         <div class="profile-avatar-placeholder"><i class="bi bi-person fs-3"></i></div>
                     </div>
-                    <h4 class="mb-2 fs-6 fw-bold text-dark">${t.guestTitle}</h4>
-                    <p class="text-muted mb-4" style="font-size: 12px; line-height: 1.5;">${t.guestDesc}</p>
-                    <a href="login.html" class="btn-custom-pink"><i class="bi bi-telegram fs-5"></i> ${t.loginTelegram}</a>
+                    <p class="text-muted mb-4" style="font-size: 12px; line-height: 1.5;">${kh ? "សូមបើកហាងនេះក្នុង Telegram ដើម្បីមើលឈ្មោះរបស់អ្នក។" : "Open this store inside Telegram to see your name."}</p>
                     <a href="index.html" class="btn-home"><i class="bi bi-house-door me-1"></i> ${t.btnHome}</a>
                 `;
                 return;
             }
 
-            const m = session.user.user_metadata || {};
-            let phoneValue = m.phone || "";
-
-            if (!phoneValue && m.telegram_id) {
-                try {
-                    const { data: row } = await supabase
-                        .from("users").select("phone").eq("telegram_id", String(m.telegram_id)).maybeSingle();
-                    if (row?.phone) phoneValue = row.phone;
-                } catch (_) { /* keep empty */ }
-            }
-            if (currentMode() !== "account") return;
-
-            const fullName = (m.full_name || m.name || "").trim();
-            const firstLetter = (fullName || "U").charAt(0);
-            const username = m.username ? `@${m.username}` : "No username";
-            const phoneNumber = phoneValue || t.valNotVerified;
-            const userAvatar = decodeHtmlEntities(m.avatar_url || "");
-
-            let avatarHTML = "";
-            if (userAvatar && /^https:\/\//.test(userAvatar)) {
-                avatarHTML = `
-                    <div class="profile-avatar-wrapper">
-                        <img src="${esc(userAvatar)}" alt="Profile Picture" class="profile-avatar" id="profileImg">
-                        <div class="profile-avatar-placeholder" id="profileImgFallback" style="display: none;">${esc(firstLetter)}</div>
-                        <div class="status-dot"></div>
-                    </div>`;
-            } else {
-                avatarHTML = `
-                    <div class="profile-avatar-wrapper">
-                        <div class="profile-avatar-placeholder">${esc(firstLetter)}</div>
-                        <div class="status-dot"></div>
-                    </div>`;
-            }
-
+            const fullName = `${u.first_name || ""} ${u.last_name || ""}`.trim() || "User";
             container.innerHTML = `
-                ${avatarHTML}
-                <h4 class="mb-1 fs-6 fw-bold text-dark">${esc(fullName)}</h4>
-                <p class="text-muted mb-3" style="font-size: 12px;"><i class="bi bi-telegram text-primary me-1"></i> ${esc(username)}</p>
-
-                <div class="info-group">
-                    <div class="info-row">
-                        <span class="info-label">${t.lblTelegramId}</span>
-                        <span class="info-value font-monospace">${esc(m.telegram_id || "")}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">${t.lblPhone}</span>
-                        <span class="info-value">${esc(phoneNumber)}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">${t.lblStatus}</span>
-                        <span class="info-value text-success"><i class="bi bi-check-circle-fill me-1"></i> ${t.valVerified}</span>
-                    </div>
+                <div class="profile-avatar-wrapper">
+                    <div class="profile-avatar-placeholder">${esc(fullName.charAt(0))}</div>
                 </div>
-
-                <a href="index.html" class="btn-home mb-2"><i class="bi bi-house-door me-1"></i> ${t.btnHome}</a>
-                <button id="logoutBtn" class="btn-custom-outline-danger"><i class="bi bi-box-arrow-right me-1"></i> ${t.btnLogout}</button>
+                <h4 class="mb-4 fs-6 fw-bold text-dark">${esc(fullName)}</h4>
+                <a href="index.html" class="btn-home"><i class="bi bi-house-door me-1"></i> ${t.btnHome}</a>
             `;
-
-            // If the picture can not load, show the first letter instead
-            document.getElementById("profileImg")?.addEventListener("error", (e) => {
-                e.target.style.display = "none";
-                const fb = document.getElementById("profileImgFallback");
-                if (fb) fb.style.display = "flex";
-            });
-
-            document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-                localStorage.removeItem("davin_user");
-                localStorage.removeItem("telegram_user");
-                await supabase.auth.signOut();
-                sessionStorage.clear();
-                window.location.href = "login.html";
-            });
         }
 
         // ---------- Start ----------
