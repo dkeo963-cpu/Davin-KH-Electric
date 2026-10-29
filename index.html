@@ -1693,27 +1693,20 @@
         </div>
     </div>
 
-    <div id="payModal" class="custom-modal-overlay cart-modal">
-        <div class="custom-modal-card">
-            <h3 id="payTitle">Pay with Bakong KHQR</h3>
-            <p id="payDesc">Scan with ABA, ACLEDA or any Bakong bank app.</p>
-            <div id="payAmount" style="font-size:26px;font-weight:800;color:#f59e0b;">$0.00</div>
-            <img id="payQrImg" alt="KHQR payment code" width="240" height="240"
-                 style="display:block;margin:10px auto;background:#fff;border-radius:12px;padding:6px;">
-            <div id="payTimer" style="font-size:13px;color:#94a3b8;margin-bottom:10px;">10:00</div>
-            <a id="payOpenAppBtn" href="#" rel="noopener noreferrer" class="btn-login-telegram-modal mb-2"
-               style="display:none;background-color:#e21a1a;">
-                <i class="bi bi-bank2"></i> <span id="payOpenAppText">Open bank app (ABA, ACLEDA...)</span>
-            </a>
-            <div id="payStatus" style="font-size:12px;color:#94a3b8;margin-bottom:12px;">
-                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-                <span id="payStatusText">Waiting for payment...</span>
-            </div>
-            <button type="button" id="payCancelBtn" class="custom-modal-btn custom-modal-btn-cancel w-100 py-2">Cancel</button>
+    <div id="orderModal" class="custom-modal-overlay cart-modal">
+        <div class="custom-modal-card" style="max-height:90vh;overflow-y:auto;">
+            <h3 id="orderTitle">Confirm your order</h3>
+            <div id="orderTotal" style="font-size:26px;font-weight:800;color:#f59e0b;margin-bottom:10px;">$0.00</div>
+            <div id="orderItems" style="text-align:left;font-size:13px;margin-bottom:12px;"></div>
+            <div id="orderInfo" style="text-align:left;font-size:13px;border-top:1px solid rgba(148,163,184,.3);padding-top:10px;margin-bottom:12px;"></div>
+            <p id="orderHint" style="font-size:12px;color:#94a3b8;margin-bottom:14px;">The store will receive your order on Telegram and contact you.</p>
+            <button type="button" id="orderConfirmBtn" class="custom-modal-btn custom-modal-btn-success w-100 py-2 mb-2" disabled>
+                <i class="bi bi-send-fill"></i> <span id="orderConfirmText">Send to store</span>
+            </button>
+            <button type="button" id="orderCancelBtn" class="custom-modal-btn custom-modal-btn-cancel w-100 py-2">Cancel</button>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 
     <!-- Supabase Integration & Logic Script -->
     <script type="module">
@@ -2804,7 +2797,7 @@
                 lblAddress: "អាសយដ្ឋានដឹកជញ្ជូន / ទីតាំង",
                 placeholderAddress: "ឧ. ផ្លូវ ២៧១ ភ្នំពេញ",
                 lblTotal: "សរុបរួម",
-                submitHint: "បង់ប្រាក់តាម ABA, ACLEDA ឬធនាគារដែលគាំទ្រ Bakong",
+                submitHint: "ចុចប៊ូតុងដើម្បីផ្ញើការបញ្ជាទិញទៅហាង",
                 submitOrderBtn: "ផ្ញើការបញ្ជាទិញ",
                 emptyCart: "គ្មានទំនិញនៅក្នុងកន្ត្រករបស់អ្នកទេ។",
                 each: "ក្នុងមួយ",
@@ -2845,7 +2838,7 @@
                 lblAddress: "Delivery Address / Location",
                 placeholderAddress: "e.g. St 271, Phnom Penh",
                 lblTotal: "Total",
-                submitHint: "Pay with ABA, ACLEDA or any Bakong bank app",
+                submitHint: "Press the button to send your order to the store",
                 submitOrderBtn: "Send Order",
                 emptyCart: "Your cart is empty.",
                 each: "each",
@@ -3136,7 +3129,7 @@
                 .filter(i => i.id);
             if (items.length === 0) return;
             try {
-                const { data } = await supabase.functions.invoke("send-order", { body: { action: "quote", items } });
+                const { data } = await supabase.functions.invoke("smart-function", { body: { action: "quote", items } });
                 if (data && data.total != null && currentMode() === "cart") {
                     document.getElementById("totalVal").textContent = `$${Number(data.total).toFixed(2)}`;
                 }
@@ -3197,7 +3190,7 @@
                 showCustomAlert(kh ? "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ" : "Please enter a valid phone number.");
                 return;
             }
-            sendOrder();
+            openOrderModal();
         }
 
         // Send the cart to the store owner's Telegram
@@ -3215,7 +3208,7 @@
             loading.classList.add("active");
             try {
                 const phone = document.getElementById("custPhone").value.trim();
-                const { data, error } = await supabase.functions.invoke("send-order", {
+                const { data, error } = await supabase.functions.invoke("smart-function", {
                     body: {
                         init_data: tg.initData,
                         items,
@@ -3255,202 +3248,107 @@
         }
         document.getElementById("btnSubmitOrder").addEventListener("click", triggerOrderProcess);
 
-        // ================= BAKONG KHQR PAYMENT =================
-        const payModal = document.getElementById("payModal");
-        let activePayment = null;
-        let payPollTimer = null;
-        let payCountdownTimer = null;
-        let payPolling = false;
-
-        const payText = () => currentLang === "kh" ? {
-            title: "បង់ប្រាក់តាម Bakong KHQR",
-            desc: "ស្កេនជាមួយ ABA, ACLEDA ឬកម្មវិធីធនាគារណាមួយដែលគាំទ្រ Bakong",
-            open: "បើកកម្មវិធីធនាគារ (ABA, ACLEDA...)",
-            wait: "កំពុងរង់ចាំការទូទាត់...",
-            cancel: "បោះបង់",
-            paid: "ការទូទាត់ជោគជ័យ! យើងនឹងទាក់ទងអ្នកវិញក្នុងពេលឆាប់ៗ។",
-            expired: "QR ផុតកំណត់ហើយ។ សូមចុចទូទាត់ម្តងទៀត។",
-            fail: "មិនអាចចាប់ផ្តើមការទូទាត់បានទេ។ សូមព្យាយាមម្តងទៀត។"
+        // ================= ORDER CONFIRM POPUP =================
+        const orderModal = document.getElementById("orderModal");
+        const orderText = () => currentLang === "kh" ? {
+            title: "បញ្ជាក់ការបញ្ជាទិញ",
+            hint: "ហាងនឹងទទួលបានការបញ្ជាទិញនេះតាម Telegram ហើយនឹងទាក់ទងអ្នក។",
+            send: "ផ្ញើទៅហាង", cancel: "បោះបង់",
+            telegram: "Telegram", name: "ឈ្មោះ", phone: "ទូរស័ព្ទ", address: "អាសយដ្ឋាន", location: "ទីតាំង GPS",
+            pinned: "បានបញ្ជាក់ទីតាំង", notPinned: "មិនបានបញ្ជាក់ទេ", calc: "កំពុងគណនា..."
         } : {
-            title: "Pay with Bakong KHQR",
-            desc: "Scan with ABA, ACLEDA or any Bakong bank app.",
-            open: "Open bank app (ABA, ACLEDA...)",
-            wait: "Waiting for payment...",
-            cancel: "Cancel",
-            paid: "Payment received! We will contact you shortly.",
-            expired: "This QR has expired. Please press pay again.",
-            fail: "Could not start the payment. Please try again."
+            title: "Confirm your order",
+            hint: "The store will receive your order on Telegram and contact you.",
+            send: "Send to store", cancel: "Cancel",
+            telegram: "Telegram", name: "Name", phone: "Phone", address: "Address", location: "GPS location",
+            pinned: "Pinned", notPinned: "Not pinned", calc: "Calculating..."
         };
 
-        function stopPayTimers() {
-            clearInterval(payPollTimer);
-            clearInterval(payCountdownTimer);
-            payPollTimer = null;
-            payCountdownTimer = null;
+        function orderLine(left, right, bold) {
+            const row = document.createElement("div");
+            row.style.cssText = "display:flex;justify-content:space-between;gap:12px;padding:3px 0;" + (bold ? "font-weight:600;" : "");
+            const l = document.createElement("span"); l.textContent = left;
+            const r = document.createElement("span"); r.textContent = right; r.style.textAlign = "right";
+            if (!bold) l.style.color = "#94a3b8";
+            row.append(l, r);
+            return row;
         }
 
-        function closePayModal() {
-            stopPayTimers();
-            payModal.classList.remove("active");
-            activePayment = null;
-            localStorage.removeItem("pending_payment");
-        }
+        async function openOrderModal() {
+            const tx = orderText();
+            const u = tg.initDataUnsafe?.user || {};
+            const cart = getCart();
 
-        async function pollPayment() {
-            if (!activePayment || payPolling) return;
-            payPolling = true;
-            try {
-                const { data, error } = await supabase.functions.invoke("check-payment", {
-                    body: { order_id: activePayment.order_id }
-                });
-                if (error || !data) return;
-                if (data.status === "paid") {
-                    closePayModal();
-                    localStorage.removeItem("cart");
-                    updateCartBadge();
-                    if (currentMode() === "cart") renderCart();
-                    showSuccessModal(payText().paid, "", () => navigate(""));
-                } else if (data.status === "expired") {
-                    closePayModal();
-                    showCustomAlert(payText().expired);
-                }
-            } catch (e) {
-                console.error(e);
-            } finally {
-                payPolling = false;
-            }
-        }
+            document.getElementById("orderTitle").textContent = tx.title;
+            document.getElementById("orderHint").textContent = tx.hint;
+            document.getElementById("orderConfirmText").textContent = tx.send;
+            document.getElementById("orderCancelBtn").textContent = tx.cancel;
+            const totalEl = document.getElementById("orderTotal");
+            totalEl.textContent = tx.calc;
+            const confirmBtn = document.getElementById("orderConfirmBtn");
+            confirmBtn.disabled = true;
 
-        function updateCountdown() {
-            if (!activePayment) return;
-            const left = Math.floor((new Date(activePayment.expires_at).getTime() - Date.now()) / 1000);
-            const timerEl = document.getElementById("payTimer");
-            if (left > 0) {
-                timerEl.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
-            } else {
-                timerEl.textContent = "00:00";
-                if (left < -30) { // 30 seconds of grace for the bank, then close
-                    closePayModal();
-                    showCustomAlert(payText().expired);
-                }
-            }
-        }
-
-        function openPayModal(p, autoOpenBankApp) {
-            if (!window.QRCode) { showCustomAlert(payText().fail); return; }
-            activePayment = p;
-            const tx = payText();
-            document.getElementById("payTitle").textContent = tx.title;
-            document.getElementById("payDesc").textContent = tx.desc;
-            document.getElementById("payOpenAppText").textContent = tx.open;
-            document.getElementById("payStatusText").textContent = tx.wait;
-            document.getElementById("payCancelBtn").textContent = tx.cancel;
-            document.getElementById("payAmount").textContent = "$" + Number(p.amount).toFixed(2);
-
-            window.QRCode.toDataURL(p.qr, { width: 240, margin: 1, errorCorrectionLevel: "M" }, (err, url) => {
-                if (!err) document.getElementById("payQrImg").src = url;
+            const itemsBox = document.getElementById("orderItems");
+            itemsBox.textContent = "";
+            cart.forEach((i) => {
+                const qty = Math.max(1, parseInt(i.quantity) || 1);
+                const name = (currentLang === "kh" && i.name_kh) ? i.name_kh : (i.name || "Product");
+                const line = (Number(i.price) || 0) * qty;
+                itemsBox.appendChild(orderLine(`${name} × ${qty}`, `$${line.toFixed(2)}`, true));
             });
 
-            const openBtn = document.getElementById("payOpenAppBtn");
-            if (p.deeplink && /^https:\/\//.test(p.deeplink)) {
-                openBtn.href = p.deeplink;
-                openBtn.onclick = (ev) => { if (IN_TG) { ev.preventDefault(); openExternal(p.deeplink); } };
-                openBtn.style.display = "flex";
-            } else {
-                openBtn.style.display = "none";
-            }
+            const info = document.getElementById("orderInfo");
+            info.textContent = "";
+            const fullName = `${u.first_name || ""} ${u.last_name || ""}`.trim();
+            info.appendChild(orderLine(tx.telegram, u.username ? `@${u.username}` : "-"));
+            info.appendChild(orderLine(tx.name, fullName || "-"));
+            info.appendChild(orderLine(tx.phone, document.getElementById("custPhone").value.trim() || "-"));
+            const addr = document.getElementById("custAddress").value.trim();
+            info.appendChild(orderLine(tx.address, pinnedLocationLink ? "-" : (addr || "-")));
+            info.appendChild(orderLine(tx.location, pinnedLocationLink ? tx.pinned : tx.notPinned));
 
-            payModal.classList.add("active");
-            updateCountdown();
-            stopPayTimers();
-            payCountdownTimer = setInterval(updateCountdown, 1000);
-            payPollTimer = setInterval(pollPayment, 3000);
+            orderModal.classList.add("active");
 
-            // On a phone, go straight to the bank app
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            if (autoOpenBankApp && isMobile && openBtn.style.display !== "none") {
-                setTimeout(() => openExternal(p.deeplink), 700);
-            }
-        }
-
-        async function startPayment() {
-            if (!currentUserSession) { modal.classList.add("active"); return; }
-            const items = getCart()
+            // The total shown here is calculated by the server
+            const items = cart
                 .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
                 .filter(i => i.id);
-            if (items.length === 0) { showCustomAlert(cartTr[currentLang].alertEmptyCart); return; }
-
-            const loading = document.getElementById("verifyLoadingModal");
-            loading.classList.add("active");
             try {
-                const { data, error } = await supabase.functions.invoke("create-payment", {
-                    body: {
-                        items,
-                        address: document.getElementById("custAddress").value.trim(),
-                        phone: document.getElementById("custPhone").value.trim(),
-                        mapLink: pinnedLocationLink || ""
-                    }
-                });
-                if (error || !data?.qr) {
-                    let msg = payText().fail;
-                    try {
-                        const j = await error?.context?.json?.();
-                        if (j?.error) msg = j.error;
-                    } catch (_) { /* keep generic message */ }
-                    throw new Error(msg);
+                const { data, error } = await supabase.functions.invoke("smart-function", { body: { action: "quote", items } });
+                if (!orderModal.classList.contains("active")) return;
+                if (error || data?.total == null) {
+                    let msg = currentLang === "kh" ? "មិនអាចគណនាតម្លៃបានទេ។ សូមព្យាយាមម្តងទៀត។" : "Could not calculate the price. Please try again.";
+                    try { const j = await error?.context?.json?.(); if (j?.error) msg = j.error; } catch (_) { /* keep generic */ }
+                    orderModal.classList.remove("active");
+                    showCustomAlert(msg);
+                    return;
                 }
-                const payment = {
-                    order_id: data.order_id,
-                    qr: data.qr,
-                    deeplink: data.deeplink || null,
-                    amount: data.amount,
-                    expires_at: data.expires_at
-                };
-                localStorage.setItem("pending_payment", JSON.stringify(payment));
-                loading.classList.remove("active");
-                openPayModal(payment, true);
-            } catch (err) {
-                loading.classList.remove("active");
-                showCustomAlert(err.message || payText().fail);
-                console.error(err);
+                totalEl.textContent = `$${Number(data.total).toFixed(2)}`;
+                confirmBtn.disabled = false;
+            } catch (e) {
+                console.error(e);
+                orderModal.classList.remove("active");
+                showCustomAlert(currentLang === "kh" ? "មិនអាចភ្ជាប់ទៅម៉ាស៊ីនមេបានទេ។" : "Could not reach the server.");
             }
         }
 
-        // Coming back from the bank app (or reopening the cart): keep waiting for the payment
-        function resumePendingPayment() {
-            localStorage.removeItem("pending_payment");
-            return;
-            try {
-                const p = JSON.parse(localStorage.getItem("pending_payment") || "null");
-                if (p && p.order_id && p.qr && new Date(p.expires_at).getTime() > Date.now() - 30000) {
-                    openPayModal(p, false);
-                    pollPayment();
-                } else {
-                    localStorage.removeItem("pending_payment");
-                }
-            } catch (_) {
-                localStorage.removeItem("pending_payment");
-            }
-        }
-
-        document.getElementById("payCancelBtn").addEventListener("click", closePayModal);
+        document.getElementById("orderCancelBtn").addEventListener("click", () => orderModal.classList.remove("active"));
+        document.getElementById("orderConfirmBtn").addEventListener("click", () => {
+            orderModal.classList.remove("active");
+            sendOrder();
+        });
 
         async function enterCartView() {
             applyCartLanguage();
             await checkAuth();
             if (currentMode() !== "cart") return;
             renderCart();
-            resumePendingPayment();
         }
 
         // Leaving the cart page: hide the QR popup but keep the pending payment so it resumes on return
         function leaveCartView() {
             cartRenderToken++;
-            if (activePayment) {
-                stopPayTimers();
-                payModal.classList.remove("active");
-                activePayment = null;
-            }
+            orderModal.classList.remove("active");
         }
 
         // =====================================================================
