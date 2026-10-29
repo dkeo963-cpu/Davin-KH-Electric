@@ -125,7 +125,7 @@ async function api(body) {
       return { error: j.error || "Error " + r.status, code: j.code || "" };
     }
     return { data: j };
-  } catch (e) { return { error: "Could not reach the server." }; }
+  } catch (e) { return { error: "Could not reach the server. [" + (e && e.name) + ": " + (e && e.message) + "] origin=" + location.origin + " url=" + FUNCTION_URL }; }
 }
 
 async function readSettings(keys) {
