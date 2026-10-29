@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- Security: Content Security Policy (CSP) allowing Supabase, Unsplash, Telegram, and CDNs -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://telegram.org https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://*.supabase.co https://oauth.telegram.org; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://telegram.org https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://*.telegram.org https://t.me https://*.t.me https://*.telegra.ph https://*.telegram-cdn.org https://*.telesco.pe https://placehold.co; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com; child-src https://www.youtube-nocookie.com https://www.youtube.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://oauth.telegram.org https://*.telegram.org;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://telegram.org https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://*.supabase.co https://oauth.telegram.org; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://telegram.org https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://*.telegram.org https://t.me https://*.t.me https://*.telegra.ph https://*.telegram-cdn.org https://*.telesco.pe https://placehold.co https://tile.openstreetmap.org; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com; child-src https://www.youtube-nocookie.com https://www.youtube.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://nominatim.openstreetmap.org https://oauth.telegram.org https://*.telegram.org;">
     <title>Davin Electric | Professional Technical Solutions</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -104,6 +104,64 @@
             position: absolute;
             right: 20px;
         }
+
+        /* ===== Text animation styles (chosen in the admin panel) ===== */
+        .fx-run{display:block!important;overflow:hidden;white-space:nowrap;width:100%;max-width:100%}
+        .fx-run-in{display:inline-block;padding-left:100%;will-change:transform;animation:fxRun 14s linear infinite}
+        .fx-run-right .fx-run-in{animation-direction:reverse}
+        .fx-beat{animation:fxBeat calc(1.3s * var(--fx-m,1)) ease-in-out infinite}
+        .fx-blink{animation:fxBlink calc(1.2s * var(--fx-m,1)) ease-in-out infinite}
+        .fx-bounce{animation:fxBounce calc(1s * var(--fx-m,1)) ease-in-out infinite}
+        .fx-glow{animation:fxGlow calc(1.8s * var(--fx-m,1)) ease-in-out infinite}
+        .fx-shake{animation:fxShake calc(2.2s * var(--fx-m,1)) ease-in-out infinite}
+        .fx-rainbow{animation:fxRainbow calc(5s * var(--fx-m,1)) linear infinite}
+        @keyframes fxRun{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+        @keyframes fxBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.08)}30%{transform:scale(1)}45%{transform:scale(1.08)}60%{transform:scale(1)}}
+        @keyframes fxBlink{0%,100%{opacity:1}50%{opacity:.15}}
+        @keyframes fxBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+        @keyframes fxGlow{0%,100%{text-shadow:0 0 2px currentColor}50%{text-shadow:0 0 14px currentColor,0 0 4px currentColor}}
+        @keyframes fxShake{0%,60%,100%{transform:translateX(0)}65%{transform:translateX(-4px)}70%{transform:translateX(4px)}75%{transform:translateX(-4px)}80%{transform:translateX(4px)}85%{transform:translateX(-2px)}90%{transform:translateX(0)}}
+        @keyframes fxRainbow{0%,100%{color:#e91e63}20%{color:#ff9800}40%{color:#4caf50}60%{color:#2196f3}80%{color:#9c27b0}}
+        @media (prefers-reduced-motion: reduce){
+          .fx-beat,.fx-blink,.fx-bounce,.fx-glow,.fx-shake,.fx-rainbow{animation:none}
+          .fx-run{white-space:normal}.fx-run-in{animation:none;padding-left:0;display:inline}
+        }
+        .promo-announcement-bar > .fx-run { flex: 1 1 auto; min-width: 0; width: auto; margin-right: 28px; }
+
+        /* ===== Map picker (pin your delivery location) ===== */
+        .mp-overlay { position: fixed; inset: 0; z-index: 2100; background: rgba(15,23,42,.55); display: none; align-items: center; justify-content: center; }
+        .mp-overlay.active { display: flex; }
+        .mp-sheet { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+        @media (min-width: 768px) { .mp-sheet { width: min(760px, 94vw); height: min(720px, 92vh); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.35); } }
+        .mp-head { display: flex; align-items: center; gap: 10px; padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 12px; border-bottom: 1px solid var(--card-border); }
+        .mp-title { font-weight: 800; font-size: 16px; color: #0f172a; flex: 1; min-width: 0; }
+        .mp-close { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--card-border); background: #fff; color: #0f172a; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+        .mp-search { display: flex; gap: 8px; padding: 10px 14px 6px; }
+        .mp-search input { flex: 1; min-width: 0; border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; }
+        .mp-search input:focus { border-color: var(--accent-pink); }
+        .mp-search button { border: none; background: var(--accent-pink); color: #fff; border-radius: 10px; padding: 0 16px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .mp-results { margin: 0 14px 6px; border: 1px solid var(--card-border); border-radius: 10px; max-height: 34%; overflow-y: auto; background: #fff; }
+        .mp-results:empty { display: none; }
+        .mp-results button { display: block; width: 100%; text-align: left; background: #fff; border: none; border-bottom: 1px solid #f1f5f9; padding: 10px 12px; font-size: 13px; color: #0f172a; cursor: pointer; }
+        .mp-results button:last-child { border-bottom: none; }
+        .mp-results button:hover, .mp-results button:active { background: #fdf2f8; }
+        .mp-results .mp-note { padding: 10px 12px; font-size: 13px; color: #64748b; }
+        .mp-mapwrap { position: relative; flex: 1; min-height: 200px; background: #e5e7eb; }
+        #mpMap { position: absolute; inset: 0; }
+        #mpMap img.leaflet-tile { max-width: none !important; }
+        .mp-gps { position: absolute; left: 12px; bottom: 14px; z-index: 1001; border: none; background: #fff; color: #0f172a; border-radius: 24px; padding: 10px 16px; font-weight: 700; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,.3); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .mp-gps:disabled { opacity: .6; cursor: wait; }
+        .mp-gps i { color: #2563eb; }
+        .mp-pin { background: none; border: 0; font-size: 40px; line-height: 1; color: var(--accent-pink); text-shadow: 0 2px 4px rgba(0,0,0,.35); }
+        .mp-pin i { display: block; }
+        .mp-foot { padding: 10px 14px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--card-border); }
+        .mp-status { font-size: 13px; color: #475569; min-height: 36px; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .mp-status.err { color: #dc3545; }
+        .mp-actions { display: flex; gap: 8px; align-items: center; }
+        .mp-btn-main { flex: 1; border: none; background: var(--accent-pink); color: #fff; border-radius: 10px; padding: 12px; font-weight: 700; cursor: pointer; }
+        .mp-btn-main:disabled { opacity: .45; cursor: not-allowed; }
+        .mp-btn-ghost { border: 1px solid var(--card-border); background: #fff; color: #0f172a; border-radius: 10px; padding: 12px 16px; font-weight: 600; cursor: pointer; }
+        .mp-link { border: none; background: none; color: #dc3545; font-size: 12px; padding: 4px 2px; cursor: pointer; }
 
         /* 2. Top Header Navigation */
         .top-hero-header {
@@ -1670,6 +1728,33 @@
     </footer>
 
     <!-- Cart modals (alert, success, loading, KHQR payment) -->
+    <!-- Map picker: search a place, tap the map, or use GPS -->
+    <div id="mapPickerModal" class="mp-overlay" role="dialog" aria-modal="true" aria-labelledby="mpTitle">
+        <div class="mp-sheet">
+            <div class="mp-head">
+                <div class="mp-title" id="mpTitle">Choose your delivery location</div>
+                <button type="button" class="mp-close" id="mpClose" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="mp-search">
+                <input type="search" id="mpSearchInput" autocomplete="off" enterkeyhint="search" maxlength="120">
+                <button type="button" id="mpSearchBtn"><i class="bi bi-search"></i> <span id="mpSearchTxt">Search</span></button>
+            </div>
+            <div class="mp-results" id="mpResults"></div>
+            <div class="mp-mapwrap">
+                <div id="mpMap"></div>
+                <button type="button" class="mp-gps" id="mpGpsBtn"><i class="bi bi-crosshair"></i> <span id="mpGpsTxt">Use my current location</span></button>
+            </div>
+            <div class="mp-foot">
+                <div class="mp-status" id="mpStatus"></div>
+                <div class="mp-actions">
+                    <button type="button" class="mp-btn-ghost" id="mpCancel">Cancel</button>
+                    <button type="button" class="mp-btn-main" id="mpConfirm" disabled>Confirm this location</button>
+                </div>
+                <button type="button" class="mp-link" id="mpRemove" style="display:none">Remove pin</button>
+            </div>
+        </div>
+    </div>
+
     <div id="customAlertModal" class="custom-modal-overlay cart-modal">
         <div class="custom-modal-card">
             <div class="custom-modal-icon-wrap">
@@ -1734,10 +1819,41 @@
 
         // ================= ADMIN-EDITABLE PROMO BAR + HERO TEXT =================
         let SITE = {};
+        // ---- Text animation styles (set in the admin panel): normal, running, beat, blink, bounce, glow, shake, rainbow ----
+        const FX_NAMES = ["run-left", "run-right", "beat", "blink", "bounce", "glow", "shake", "rainbow"];
+        const FX_CLASSES = ["fx-run", "fx-run-left", "fx-run-right", "fx-beat", "fx-blink", "fx-bounce", "fx-glow", "fx-shake", "fx-rainbow"];
+        const FX_MULT = { slow: 1.7, normal: 1, fast: 0.55 };      // how long one beat/blink takes
+        const FX_PXS = { slow: 40, normal: 75, fast: 130 };        // running text: pixels per second
+        function unwrapFx(el) {
+            const w = el.firstElementChild;
+            if (w && w.classList.contains("fx-run-in") && el.children.length === 1) {
+                while (w.firstChild) el.insertBefore(w.firstChild, w);
+                w.remove();
+            }
+        }
+        function applyFx(el, fx, speed) {
+            if (!el) return;
+            unwrapFx(el);
+            FX_CLASSES.forEach((c) => el.classList.remove(c));
+            el.style.removeProperty("--fx-m");
+            if (!FX_NAMES.includes(fx)) return;                    // "none" / empty / unknown = normal text
+            const sp = FX_MULT[speed] ? speed : "normal";
+            if (fx === "run-left" || fx === "run-right") {
+                const inner = document.createElement("span"); inner.className = "fx-run-in";
+                while (el.firstChild) inner.appendChild(el.firstChild);
+                el.appendChild(inner);
+                el.classList.add("fx-run", "fx-" + fx);
+                requestAnimationFrame(() => { const w = inner.offsetWidth; if (w > 0) inner.style.animationDuration = Math.max(4, w / FX_PXS[sp]) + "s"; });
+            } else {
+                el.style.setProperty("--fx-m", String(FX_MULT[sp]));
+                el.classList.add("fx-" + fx);
+            }
+        }
         function applyPromo() {
             const bar = document.getElementById("promoBar"), p = SITE.promo;
             if (!bar || !p) return;
             if (p.on === false) { bar.style.display = "none"; return; }
+            bar.style.display = "";
             const box = bar.querySelector("div"); box.textContent = "";
             const b = document.createElement("span"); b.className = "badge-pill-amber"; b.textContent = p.badge || ""; if (p.badge) box.append(b);
             box.append(" " + (p.text || "") + " ");
@@ -1747,13 +1863,20 @@
                 const u = String(p.url || "index.html?products=all"); a.href = (/^https:\/\//.test(u) || /^index\.html/.test(u)) ? u : "index.html?products=all";
                 box.append(a);
             }
+            applyFx(box, p.fx, p.speed);
         }
         function applyHeroOverride() {
             const h = SITE.hero; if (!h) return;
             const L = currentLang === "kh" ? "kh" : "en";
             [["welcomeBadge", "badge"], ["heroMainTitle", "title"], ["heroSubtitle", "sub"]].forEach(([id, k]) => {
                 const v = String(h[k + "_" + L] || "").trim(), el = document.getElementById(id);
-                if (v && el) el.textContent = v;
+                if (!el) return;
+                unwrapFx(el);
+                if (v) el.textContent = v;
+                // admin switch: show / hide this line
+                if (h["on_" + k] === false) el.style.setProperty("display", "none", "important");
+                else el.style.removeProperty("display");
+                applyFx(el, h["fx_" + k], h.speed);
             });
         }
         (async function loadSite() {
@@ -3025,35 +3148,209 @@
         }
         setPinState(!!pinnedLocationLink);
 
-        document.getElementById("btnPinLocation").addEventListener("click", () => {
-            const t = cartTr[currentLang];
-            const addressInput = document.getElementById("custAddress");
-            if (!navigator.geolocation && !IN_TG) { showCustomAlert(t.locErr); return; }
+// ================= MAP PICKER (OpenStreetMap + Leaflet, no API key needed) =================
+// Three ways to choose: search a place, tap/drag on the map, or "Use my current location" (GPS).
+const LEAFLET_JS = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js";
+const LEAFLET_CSS = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css";
+const MP_DEFAULT_CENTER = [11.5564, 104.9282];   // Phnom Penh
+const mpTr = {
+    kh: {
+        title: "ជ្រើសរើសទីតាំងដឹកជញ្ជូន", searchPh: "ស្វែងរកទីកន្លែង ឬផ្លូវ...", search: "ស្វែងរក", useGps: "ប្រើទីតាំងបច្ចុប្បន្នរបស់ខ្ញុំ",
+        hint: "ចុចលើផែនទី ឬអូសសញ្ញាទីតាំង ដើម្បីជ្រើសរើសកន្លែងដឹកជញ្ជូន", confirm: "បញ្ជាក់ទីតាំងនេះ", cancel: "បោះបង់", remove: "លុបទីតាំង",
+        locating: "កំពុងស្វែងរកទីតាំងរបស់អ្នក…", gpsErr: "មិនអាចទាញយកទីតាំងបានទេ សូមអនុញ្ញាតសិទ្ធិទីតាំង ឬស្វែងរក/ចុចលើផែនទីជំនួស",
+        noResults: "រកមិនឃើញទីកន្លែងនេះទេ សូមសាកល្បងឈ្មោះផ្សេង ឬចុចលើផែនទី", searching: "កំពុងស្វែងរក…", searchErr: "ការស្វែងរកមិនដំណើរការទេ សូមចុចលើផែនទីជំនួស",
+        loadingMap: "កំពុងផ្ទុកផែនទី…", mapErr: "មិនអាចបើកផែនទីបានទេ សូមពិនិត្យអ៊ីនធឺណិត រួចព្យាយាមម្តងទៀត", addrLoading: "កំពុងស្វែងរកអាសយដ្ឋាន…"
+    },
+    en: {
+        title: "Choose your delivery location", searchPh: "Search a place or street...", search: "Search", useGps: "Use my current location",
+        hint: "Tap the map or drag the pin to choose where we deliver.", confirm: "Confirm this location", cancel: "Cancel", remove: "Remove pin",
+        locating: "Finding your location…", gpsErr: "Could not get your location. Please allow location access, or search / tap the map instead.",
+        noResults: "No place found. Try another name, or tap the map.", searching: "Searching…", searchErr: "Search is unavailable right now. Please tap the map instead.",
+        loadingMap: "Loading map…", mapErr: "Could not load the map. Please check your internet and try again.", addrLoading: "Finding address…"
+    }
+};
+const mt = () => mpTr[currentLang === "kh" ? "kh" : "en"];
+const mpEl = (id) => document.getElementById(id);
+let leafletPromise = null, mpMap = null, mpMarker = null, mpPicked = null, mpAddr = "", mpGeoTimer = null, mpGeoSeq = 0, autoAddress = "";
 
-            addressInput.value = t.locFetching;
-            getPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    pinnedLocationLink = `https://maps.google.com/?q=${lat},${lng}`;
-                    const formattedAddress = `Pinned Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-                    addressInput.value = formattedAddress;
-                    sessionStorage.setItem("pending_pinned_link", pinnedLocationLink);
-                    sessionStorage.setItem("pending_address_text", formattedAddress);
-                    setPinState(true);
-                    showCustomAlert(t.locSuccess, currentLang === "kh" ? "ជោគជ័យ" : "Success");
-                },
-                () => {
-                    addressInput.value = "";
-                    pinnedLocationLink = "";
-                    sessionStorage.removeItem("pending_pinned_link");
-                    sessionStorage.removeItem("pending_address_text");
-                    setPinState(false);
-                    showCustomAlert(t.locErr);
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
+function loadLeaflet() {
+    if (window.L && window.L.map) return Promise.resolve();
+    if (leafletPromise) return leafletPromise;
+    leafletPromise = new Promise((resolve, reject) => {
+        const css = document.createElement("link"); css.rel = "stylesheet"; css.href = LEAFLET_CSS; document.head.appendChild(css);
+        const s = document.createElement("script"); s.src = LEAFLET_JS;
+        s.onload = () => (window.L && window.L.map ? resolve() : reject(new Error("leaflet missing")));
+        s.onerror = () => reject(new Error("leaflet blocked"));
+        document.head.appendChild(s);
+    }).catch((e) => { leafletPromise = null; throw e; });
+    return leafletPromise;
+}
+
+function mpStatus(text, isErr) {
+    const el = mpEl("mpStatus"); el.textContent = text; el.classList.toggle("err", !!isErr);
+}
+const mpCoordText = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+const mpLang = () => (currentLang === "kh" ? "km" : "en");
+
+function mpApplyTexts() {
+    const t = mt();
+    mpEl("mpTitle").textContent = t.title;
+    mpEl("mpSearchInput").placeholder = t.searchPh;
+    mpEl("mpSearchTxt").textContent = t.search;
+    mpEl("mpGpsTxt").textContent = t.useGps;
+    mpEl("mpConfirm").textContent = t.confirm;
+    mpEl("mpCancel").textContent = t.cancel;
+    mpEl("mpRemove").textContent = t.remove;
+}
+
+// Put (or move) the pin on the map. opts: { zoom, label }
+function mpPlace(lat, lng, opts = {}) {
+    lat = Math.max(-90, Math.min(90, Math.round(lat * 1e6) / 1e6));
+    lng = Math.round(lng * 1e6) / 1e6;
+    mpPicked = { lat, lng };
+    if (!mpMarker) {
+        mpMarker = L.marker([lat, lng], {
+            draggable: true,
+            icon: L.divIcon({ className: "mp-pin", html: '<i class="bi bi-geo-alt-fill"></i>', iconSize: [40, 40], iconAnchor: [20, 38] })
+        }).addTo(mpMap);
+        mpMarker.on("dragend", () => { const p = mpMarker.getLatLng().wrap(); mpPlace(p.lat, p.lng); });
+    } else {
+        mpMarker.setLatLng([lat, lng]);
+    }
+    if (opts.zoom) mpMap.setView([lat, lng], Math.max(mpMap.getZoom(), opts.zoom));
+    mpEl("mpConfirm").disabled = false;
+    mpAddr = opts.label || "";
+    if (mpAddr) { clearTimeout(mpGeoTimer); mpGeoSeq++; mpStatus(mpAddr); }
+    else mpReverse(lat, lng);
+}
+
+// Turn the chosen point into a readable address (OpenStreetMap Nominatim). Never blocks the order if it fails.
+function mpReverse(lat, lng) {
+    clearTimeout(mpGeoTimer);
+    const seq = ++mpGeoSeq;
+    mpStatus(`${mt().addrLoading} (${mpCoordText(lat, lng)})`);
+    mpGeoTimer = setTimeout(async () => {
+        let name = "";
+        try {
+            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&lat=${lat}&lon=${lng}&accept-language=${mpLang()}`);
+            const j = await r.json();
+            name = j && j.display_name ? String(j.display_name) : "";
+        } catch (_) { /* keep coordinates only */ }
+        if (seq !== mpGeoSeq) return;                 // the person already moved the pin again
+        mpAddr = name;
+        mpStatus(name || mpCoordText(lat, lng));
+    }, 500);
+}
+
+async function mpSearch() {
+    const input = mpEl("mpSearchInput"), box = mpEl("mpResults"), q = input.value.trim();
+    box.textContent = "";
+    if (q.length < 2 || !mpMap) return;
+    // Typing coordinates like "11.5564, 104.9282" jumps straight there
+    const c = /^\s*(-?\d{1,2}(?:\.\d+)?)\s*[, ]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/.exec(q);
+    if (c && Math.abs(+c[1]) <= 90 && Math.abs(+c[2]) <= 180) { mpPlace(+c[1], +c[2], { zoom: 17 }); return; }
+    const note = (txt) => { const d = document.createElement("div"); d.className = "mp-note"; d.textContent = txt; box.textContent = ""; box.appendChild(d); };
+    note(mt().searching);
+    try {
+        const r = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=kh&accept-language=${mpLang()}&q=${encodeURIComponent(q)}`);
+        if (!r.ok) throw new Error("search " + r.status);
+        const list = await r.json();
+        if (!Array.isArray(list) || !list.length) { note(mt().noResults); return; }
+        box.textContent = "";
+        list.forEach((it) => {
+            const lat = Number(it.lat), lng = Number(it.lon);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+            const b = document.createElement("button"); b.type = "button";
+            b.textContent = String(it.display_name || "").slice(0, 160);     // text only: nothing from the search is ever treated as HTML
+            b.addEventListener("click", () => { box.textContent = ""; mpPlace(lat, lng, { zoom: 17, label: String(it.display_name || "").slice(0, 200) }); });
+            box.appendChild(b);
         });
+        if (!box.children.length) note(mt().noResults);
+    } catch (_) { note(mt().searchErr); }
+}
+
+function mpUseGps() {
+    const btn = mpEl("mpGpsBtn");
+    btn.disabled = true; mpEl("mpResults").textContent = "";
+    mpStatus(mt().locating);
+    let done = false;
+    const finish = (fn) => (arg) => { if (done) return; done = true; clearTimeout(guard); btn.disabled = false; fn(arg); };
+    const guard = setTimeout(finish(() => mpStatus(mt().gpsErr, true)), 20000);   // never leave the button stuck
+    getPosition(
+        finish((pos) => mpPlace(pos.coords.latitude, pos.coords.longitude, { zoom: 17 })),
+        finish(() => mpStatus(mt().gpsErr, true)),
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+}
+
+function mpClose() {
+    mpEl("mapPickerModal").classList.remove("active");
+    document.body.style.overflow = STORE_CLOSED ? "hidden" : "";
+}
+
+async function openMapPicker() {
+    mpApplyTexts();
+    mpEl("mapPickerModal").classList.add("active");
+    document.body.style.overflow = "hidden";
+    mpEl("mpResults").textContent = "";
+    mpEl("mpRemove").style.display = pinnedLocationLink ? "" : "none";
+    mpEl("mpConfirm").disabled = true;
+    mpStatus(mt().loadingMap);
+    try { await loadLeaflet(); } catch (_) { mpStatus(mt().mapErr, true); return; }
+    if (!mpMap) {
+        mpMap = L.map("mpMap", { zoomControl: true }).setView(MP_DEFAULT_CENTER, 13);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" }).addTo(mpMap);
+        mpMap.on("click", (e) => { const p = e.latlng.wrap(); mpEl("mpResults").textContent = ""; mpPlace(p.lat, p.lng); });
+    }
+    setTimeout(() => mpMap.invalidateSize(), 60);
+    const m = /[?&]q=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/.exec(pinnedLocationLink || "");
+    if (m) {                                      // already pinned before: start from that spot
+        mpPlace(+m[1], +m[2], { zoom: 17, label: autoAddress });
+    } else {
+        if (mpMarker) { mpMap.removeLayer(mpMarker); mpMarker = null; }
+        mpPicked = null; mpAddr = "";
+        mpMap.setView(MP_DEFAULT_CENTER, 13);
+        mpStatus(mt().hint);
+    }
+}
+
+function mpConfirm() {
+    if (!mpPicked) return;
+    const { lat, lng } = mpPicked;
+    const t = cartTr[currentLang];
+    pinnedLocationLink = `https://maps.google.com/?q=${lat},${lng}`;     // same format the server already accepts
+    sessionStorage.setItem("pending_pinned_link", pinnedLocationLink);
+    // Fill the address box with the place name, unless the customer already typed their own address
+    const input = document.getElementById("custAddress");
+    const cur = input.value.trim();
+    if (!cur || cur === autoAddress || /^Pinned Location/.test(cur)) {
+        autoAddress = (mpAddr || `Pinned Location (${lat.toFixed(5)}, ${lng.toFixed(5)})`).slice(0, 200);
+        input.value = autoAddress;
+        sessionStorage.setItem("pending_address_text", autoAddress);
+    }
+    setPinState(true);
+    mpClose();
+    showCustomAlert(t.locSuccess, currentLang === "kh" ? "ជោគជ័យ" : "Success");
+}
+
+function mpRemovePin() {
+    const input = document.getElementById("custAddress");
+    if (input.value.trim() === autoAddress || /^Pinned Location/.test(input.value.trim())) input.value = "";
+    autoAddress = ""; pinnedLocationLink = "";
+    sessionStorage.removeItem("pending_pinned_link"); sessionStorage.removeItem("pending_address_text");
+    setPinState(false);
+    mpClose();
+}
+
+document.getElementById("btnPinLocation").addEventListener("click", openMapPicker);
+mpEl("mpClose").addEventListener("click", mpClose);
+mpEl("mpCancel").addEventListener("click", mpClose);
+mpEl("mpConfirm").addEventListener("click", mpConfirm);
+mpEl("mpRemove").addEventListener("click", mpRemovePin);
+mpEl("mpGpsBtn").addEventListener("click", mpUseGps);
+mpEl("mpSearchBtn").addEventListener("click", mpSearch);
+mpEl("mpSearchInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); mpSearch(); } });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("mapPickerModal").classList.contains("active")) mpClose(); });
 
         function getItemId(item) {
             if (!item) return null;
