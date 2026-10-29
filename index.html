@@ -8,7 +8,6 @@
     <title>Davin Electric | Professional Technical Solutions</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        html.tg-mini #logoutBtn { display: none !important; }
         html.tg-mini body { padding-bottom: env(safe-area-inset-bottom); }
     </style>
     <script>
@@ -1646,19 +1645,6 @@
         </div>
     </footer>
 
-    <!-- Login Required Custom Modal -->
-    <div id="loginPopupModal" class="custom-modal-overlay">
-        <div class="custom-modal-card">
-            <div class="mb-3 fs-1 text-warning"><i class="bi bi-person-lock"></i></div>
-            <h3 id="modalTitle" class="fs-5 mb-2 text-white">Login Required</h3>
-            <p id="modalDesc" class="text-muted small mb-4">Please log in to your account first to proceed to user dashboard.</p>
-            <div class="d-flex gap-2">
-                <button type="button" id="modalCancelBtn" class="btn btn-secondary flex-grow-1 btn-sm">Cancel</button>
-                <a href="login.html" id="modalLoginBtn" class="btn btn-light flex-grow-1 btn-sm text-dark fw-bold">LOG IN</a>
-            </div>
-        </div>
-    </div>
-
     <!-- Cart modals (alert, success, loading, KHQR payment) -->
     <div id="customAlertModal" class="custom-modal-overlay cart-modal">
         <div class="custom-modal-card">
@@ -1878,11 +1864,6 @@
             if (!IN_TG) return;
             const a = e.target.closest("a[href]");
             if (!a) return;
-            if (/\/login\.html($|[?#])/.test(a.href)) {
-                e.preventDefault(); e.stopImmediatePropagation();
-                miniAppLogin(true).then((ok) => { if (ok) navigate("?view=account"); });
-                return;
-            }
             if (a.target === "_blank" && /^https?:/i.test(a.href)) {
                 e.preventDefault();
                 openExternal(a.href);
@@ -2074,11 +2055,6 @@
             document.getElementById("guideTitle").textContent = t.guideTitle;
             document.getElementById("guideDesc").textContent = t.guideDesc;
 
-            document.getElementById("modalTitle").textContent = t.modalTitle;
-            document.getElementById("modalDesc").textContent = t.modalDesc;
-            document.getElementById("modalCancelBtn").textContent = t.cancel;
-            document.getElementById("modalLoginBtn").textContent = t.login;
-
             document.querySelectorAll(".txt-account").forEach(el => el.textContent = t.account);
 
             document.querySelectorAll(".txt-back").forEach(el => el.textContent = t.back);
@@ -2207,21 +2183,11 @@
             if (e.key === "Enter") handleSearch();
         });
 
-        // Account modal logic
-        const modal = document.getElementById("loginPopupModal");
-        document.getElementById("modalCancelBtn")?.addEventListener("click", () => modal.classList.remove("active"));
-        modal?.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("active"); });
-
-        async function handleAccountClick(e) {
+        // Account button: open the Telegram profile directly (no login step)
+        document.querySelectorAll(".account-trigger-btn").forEach(btn => btn.addEventListener("click", (e) => {
             e.preventDefault();
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                navigate("?view=account");
-            } else {
-                modal.classList.add("active");
-            }
-        }
-        document.querySelectorAll(".account-trigger-btn").forEach(btn => btn.addEventListener("click", handleAccountClick));
+            navigate("?view=account");
+        }));
 
         // ---------- Home: New arrivals ----------
         async function fetchNewArrivals() {
@@ -3262,7 +3228,7 @@
             if (e) e.preventDefault();
             const t = cartTr[currentLang];
 
-            if (!currentUserSession) { modal.classList.add("active"); return; }
+            if (!currentUserSession) { showCustomAlert(currentLang === "kh" ? "សូមបើកគេហទំព័រនេះតាមរយៈ Telegram ដើម្បីបន្ត។" : "Please open this store from Telegram to continue."); return; }
 
             if (getCart().length === 0) { showCustomAlert(t.alertEmptyCart); return; }
 
@@ -3395,7 +3361,7 @@
 
         async function startPayment() {
             if (STORE_CLOSED) { setStoreClosed(true); return; }
-            if (!currentUserSession) { modal.classList.add("active"); return; }
+            if (!currentUserSession) { showCustomAlert(currentLang === "kh" ? "សូមបើកគេហទំព័រនេះតាមរយៈ Telegram ដើម្បីបន្ត។" : "Please open this store from Telegram to continue."); return; }
             const items = getCart()
                 .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
                 .filter(i => i.id);
@@ -3532,79 +3498,34 @@
             const container = document.getElementById("profileCard");
             const t = userTr[currentLang];
 
-            // The real login is the Supabase session (not browser storage)
+            // Only the Telegram account: photo, name, @username
             const { data: { session } } = await supabase.auth.getSession();
             if (currentMode() !== "account") return;
 
-            if (!session) {
-                container.innerHTML = `
-                    <div class="profile-avatar-wrapper">
-                        <div class="profile-avatar-placeholder"><i class="bi bi-person fs-3"></i></div>
-                    </div>
-                    <h4 class="mb-2 fs-6 fw-bold text-dark">${t.guestTitle}</h4>
-                    <p class="text-muted mb-4" style="font-size: 12px; line-height: 1.5;">${t.guestDesc}</p>
-                    <a href="login.html" class="btn-custom-pink"><i class="bi bi-telegram fs-5"></i> ${t.loginTelegram}</a>
-                    <a href="index.html" class="btn-home"><i class="bi bi-house-door me-1"></i> ${t.btnHome}</a>
-                `;
-                return;
-            }
+            const tgUser = (IN_TG && tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
+            const m = (session && session.user && session.user.user_metadata) || {};
 
-            const m = session.user.user_metadata || {};
-            let phoneValue = m.phone || "";
-
-            if (!phoneValue && m.telegram_id) {
-                try {
-                    const { data: row } = await supabase
-                        .from("users").select("phone").eq("telegram_id", String(m.telegram_id)).maybeSingle();
-                    if (row?.phone) phoneValue = row.phone;
-                } catch (_) { /* keep empty */ }
-            }
-            if (currentMode() !== "account") return;
-
-            const fullName = (m.full_name || m.name || "").trim();
+            const fullName = ([tgUser.first_name, tgUser.last_name].filter(Boolean).join(" ") || m.full_name || m.name || "").trim();
+            const uname = tgUser.username || m.username || "";
+            const photo = decodeHtmlEntities(tgUser.photo_url || m.avatar_url || "");
             const firstLetter = (fullName || "U").charAt(0);
-            const username = m.username ? `@${m.username}` : "No username";
-            const phoneNumber = phoneValue || t.valNotVerified;
-            const userAvatar = decodeHtmlEntities(m.avatar_url || "");
 
-            let avatarHTML = "";
-            if (userAvatar && /^https:\/\//.test(userAvatar)) {
-                avatarHTML = `
-                    <div class="profile-avatar-wrapper">
-                        <img src="${esc(userAvatar)}" alt="Profile Picture" class="profile-avatar" id="profileImg">
+            const avatarHTML = (photo && /^https:\/\//.test(photo))
+                ? `<div class="profile-avatar-wrapper">
+                        <img src="${esc(photo)}" alt="Telegram Profile Picture" class="profile-avatar" id="profileImg" referrerpolicy="no-referrer">
                         <div class="profile-avatar-placeholder" id="profileImgFallback" style="display: none;">${esc(firstLetter)}</div>
                         <div class="status-dot"></div>
-                    </div>`;
-            } else {
-                avatarHTML = `
-                    <div class="profile-avatar-wrapper">
+                    </div>`
+                : `<div class="profile-avatar-wrapper">
                         <div class="profile-avatar-placeholder">${esc(firstLetter)}</div>
                         <div class="status-dot"></div>
                     </div>`;
-            }
 
             container.innerHTML = `
                 ${avatarHTML}
-                <h4 class="mb-1 fs-6 fw-bold text-dark">${esc(fullName)}</h4>
-                <p class="text-muted mb-3" style="font-size: 12px;"><i class="bi bi-telegram text-primary me-1"></i> ${esc(username)}</p>
-
-                <div class="info-group">
-                    <div class="info-row">
-                        <span class="info-label">${t.lblTelegramId}</span>
-                        <span class="info-value font-monospace">${esc(m.telegram_id || "")}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">${t.lblPhone}</span>
-                        <span class="info-value">${esc(phoneNumber)}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">${t.lblStatus}</span>
-                        <span class="info-value text-success"><i class="bi bi-check-circle-fill me-1"></i> ${t.valVerified}</span>
-                    </div>
-                </div>
-
-                <a href="index.html" class="btn-home mb-2"><i class="bi bi-house-door me-1"></i> ${t.btnHome}</a>
-                <button id="logoutBtn" class="btn-custom-outline-danger"><i class="bi bi-box-arrow-right me-1"></i> ${t.btnLogout}</button>
+                <h4 class="mb-1 fs-6 fw-bold text-dark">${esc(fullName || "Telegram User")}</h4>
+                ${uname ? `<p class="text-muted mb-3" style="font-size: 12px;"><i class="bi bi-telegram text-primary me-1"></i> @${esc(uname)}</p>` : ""}
+                <a href="index.html" class="btn-home"><i class="bi bi-house-door me-1"></i> ${t.btnHome}</a>
             `;
 
             // If the picture can not load, show the first letter instead
@@ -3612,14 +3533,6 @@
                 e.target.style.display = "none";
                 const fb = document.getElementById("profileImgFallback");
                 if (fb) fb.style.display = "flex";
-            });
-
-            document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-                localStorage.removeItem("davin_user");
-                localStorage.removeItem("telegram_user");
-                await supabase.auth.signOut();
-                sessionStorage.clear();
-                window.location.href = "login.html";
             });
         }
 
