@@ -98,11 +98,19 @@ const tg = window.Telegram?.WebApp;
 const hasTG = !!(tg && tg.initData);
 if (tg) { try { tg.ready(); tg.expand(); } catch (_) {} }
 
+// window.confirm() is unreliable inside Telegram's webview (it can silently return false), so use Telegram's own dialog
+function askConfirm(msg) {
+  return new Promise((res) => {
+    try { if (tg && tg.showConfirm && tg.isVersionAtLeast && tg.isVersionAtLeast("6.2")) return tg.showConfirm(msg, (ok) => res(!!ok)); } catch (_) {}
+    res(confirm(msg));
+  });
+}
+
 let toastTimer;
 function toast(msg, type = "") {
   const el = $("toast");
   el.textContent = msg; el.className = "toast show " + type;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), type === "err" ? 8000 : 2600);
 }
 function showGate(title, msg) {
   $("gate-title").textContent = title; $("gate-msg").textContent = msg || "";
@@ -148,10 +156,16 @@ function paintStore() {
 }
 $("st-switch").onclick = async () => {
   const want = !storeOpen;
-  if (!want && !confirm("បិទហាង? អតិថិជនមិនអាចបញ្ជាទិញបានទេ។\nClose the store? Customers will not be able to order.")) return;
+  if (!want && !(await askConfirm("បិទហាង? អតិថិជនមិនអាចបញ្ជាទិញបានទេ។\nClose the store? Customers will not be able to order."))) return;
   $("st-switch").disabled = true;
   const r = await api({ action: "admin_set", key: "is_store_open", value: String(want) });
   if (r.error) { toast(r.error, "err"); $("st-switch").disabled = false; return; }
+  const check = await readSettings(["is_store_open"]);
+  const saved = check.find((x) => x.key === "is_store_open")?.value;
+  if (clean(saved).trim().toLowerCase() !== String(want)) {
+    toast("Server said OK but the database still shows: " + JSON.stringify(saved ?? null), "err");
+    $("st-switch").disabled = false; return;
+  }
   storeOpen = want; paintStore();
   toast(want ? "ហាងបានបើក / Store opened" : "ហាងបានបិទ / Store closed", "ok");
 };
@@ -207,7 +221,7 @@ $("bn-list").addEventListener("click", async (e) => {
   const b = e.target.closest("button[data-bn]"); if (!b) return;
   const i = Number(b.dataset.i);
   const backup = BN.slice();
-  if (b.dataset.bn === "del") { if (!confirm("លុបបដានេះ? / Delete this banner?")) return; BN.splice(i, 1); }
+  if (b.dataset.bn === "del") { if (!(await askConfirm("លុបបដានេះ? / Delete this banner?"))) return; BN.splice(i, 1); }
   else BN.splice(i - 1, 0, BN.splice(i, 1)[0]);
   if (!(await saveBanners())) BN = backup;
   renderBanners();
