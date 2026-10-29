@@ -1755,28 +1755,43 @@
             } catch (_) {}
         })();
 
-        // ================= ADMIN "RELOAD ALL USERS" =================
-        // The admin dashboard changes the setting `reload_token`. When it changes, every open page reloads.
-        (function watchReload() {
+        // ================= STORE OPEN/CLOSED + ADMIN "RELOAD ALL USERS" =================
+        // Settings written by the admin dashboard: is_store_open, closed_message, reload_token
+        let STORE_CLOSED = false;
+        function setStoreClosed(closed, msg) {
+            STORE_CLOSED = closed;
+            let c = document.getElementById("storeClosedCover");
+            if (!closed) { if (c) c.remove(); document.body.style.overflow = ""; return; }
+            if (!c) {
+                c = document.createElement("div"); c.id = "storeClosedCover";
+                c.style.cssText = "position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.97);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:28px;";
+                c.innerHTML = '<div style="max-width:420px"><div style="font-size:60px">🔒</div><h2 style="margin:12px 0 6px;font-weight:800">ហាងបិទបណ្ដោះអាសន្ន</h2><h3 style="margin:0 0 14px;font-weight:700;opacity:.9">The store is closed</h3><p id="storeClosedMsg" style="opacity:.85;line-height:1.7;margin:0;white-space:pre-line"></p></div>';
+                document.body.appendChild(c);
+            }
+            c.querySelector("#storeClosedMsg").textContent = msg || "សូមត្រឡប់មកវិញពេលក្រោយ។\nPlease come back later.";
+            document.body.style.overflow = "hidden";
+        }
+        (function watchSettings() {
             let baseline = null;
-            async function readToken() {
+            const strip = (v) => String(v ?? "").replace(/^"|"$/g, "").trim();
+            async function readAll() {
                 try {
-                    const r = await fetch(`${SUPABASE_URL}/rest/v1/app_settings?select=value&key=eq.reload_token`, {
-                        headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY },
-                        cache: "no-store",
+                    const r = await fetch(`${SUPABASE_URL}/rest/v1/app_settings?select=key,value&key=in.(reload_token,is_store_open,closed_message)`, {
+                        headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY }, cache: "no-store",
                     });
                     if (!r.ok) return null;
-                    const rows = await r.json();
-                    return rows.length ? String(rows[0].value ?? "").replace(/"/g, "") : "";
+                    const o = {}; for (const row of await r.json()) o[row.key] = strip(row.value);
+                    return o;
                 } catch (_) { return null; }
             }
             async function check() {
-                const t = await readToken();
-                if (t === null) return;                       // network problem: try again later
+                const o = await readAll();
+                if (!o) return;                                   // network problem: try again later
+                setStoreClosed(String(o.is_store_open ?? "").toLowerCase() === "false", o.closed_message || "");
+                const t = o.reload_token ?? "";
                 if (baseline === null) { baseline = t; return; }
                 if (t !== baseline) {
-                    // do not interrupt a customer who is paying / reading a popup: wait for the next check
-                    if (document.querySelector(".custom-modal-overlay.active")) return;
+                    if (document.querySelector(".custom-modal-overlay.active")) return;   // do not interrupt a payment/popup
                     location.reload();
                 }
             }
@@ -3379,6 +3394,7 @@
         }
 
         async function startPayment() {
+            if (STORE_CLOSED) { setStoreClosed(true); return; }
             if (!currentUserSession) { modal.classList.add("active"); return; }
             const items = getCart()
                 .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
