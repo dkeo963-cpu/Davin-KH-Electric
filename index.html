@@ -8,17 +8,7 @@
     <title>Davin Electric | Professional Technical Solutions</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        #storeClosedCover {
-            display: none; position: fixed; inset: 0; z-index: 100000;
-            align-items: center; justify-content: center; padding: 24px;
-            background: rgba(15, 23, 42, .96); color: #fff; text-align: center;
-        }
-        #storeClosedCover .closed-box { max-width: 340px; }
-        #storeClosedCover .closed-ic { font-size: 56px; line-height: 1; margin-bottom: 14px; }
-        #storeClosedCover h2 { font-size: 22px; font-weight: 800; margin: 0 0 10px; }
-        #storeClosedCover p { font-size: 14px; line-height: 1.6; color: #cbd5e1; margin: 0; white-space: pre-line; }
-        .hero-banner-image-box { transition: background-image .4s ease; }
-        #logoutBtn { display: none !important; }
+        html.tg-mini #logoutBtn { display: none !important; }
         html.tg-mini body { padding-bottom: env(safe-area-inset-bottom); }
     </style>
     <script>
@@ -1386,15 +1376,6 @@
         <button type="button" class="promo-close-btn" onclick="document.getElementById('promoBar').style.display='none';">&times;</button>
     </div>
 
-    <!-- Store closed cover (controlled from the admin dashboard) -->
-    <div id="storeClosedCover" role="alert">
-        <div class="closed-box">
-            <div class="closed-ic">🔒</div>
-            <h2 id="storeClosedTitle">We are closed</h2>
-            <p id="storeClosedMsg"></p>
-        </div>
-    </div>
-
     <!-- 1. Top Header Navigation -->
     <header class="top-hero-header">
         <a href="index.html" class="brand-logo-text">
@@ -1712,20 +1693,27 @@
         </div>
     </div>
 
-    <div id="orderModal" class="custom-modal-overlay cart-modal">
-        <div class="custom-modal-card" style="max-height:90vh;overflow-y:auto;">
-            <h3 id="orderTitle">Confirm your order</h3>
-            <div id="orderTotal" style="font-size:26px;font-weight:800;color:#f59e0b;margin-bottom:10px;">$0.00</div>
-            <div id="orderItems" style="text-align:left;font-size:13px;margin-bottom:12px;"></div>
-            <div id="orderInfo" style="text-align:left;font-size:13px;border-top:1px solid rgba(148,163,184,.3);padding-top:10px;margin-bottom:12px;"></div>
-            <p id="orderHint" style="font-size:12px;color:#94a3b8;margin-bottom:14px;">The store will receive your order on Telegram and contact you.</p>
-            <button type="button" id="orderConfirmBtn" class="custom-modal-btn custom-modal-btn-success w-100 py-2 mb-2" disabled>
-                <i class="bi bi-send-fill"></i> <span id="orderConfirmText">Send to store</span>
-            </button>
-            <button type="button" id="orderCancelBtn" class="custom-modal-btn custom-modal-btn-cancel w-100 py-2">Cancel</button>
+    <div id="payModal" class="custom-modal-overlay cart-modal">
+        <div class="custom-modal-card">
+            <h3 id="payTitle">Pay with Bakong KHQR</h3>
+            <p id="payDesc">Scan with ABA, ACLEDA or any Bakong bank app.</p>
+            <div id="payAmount" style="font-size:26px;font-weight:800;color:#f59e0b;">$0.00</div>
+            <img id="payQrImg" alt="KHQR payment code" width="240" height="240"
+                 style="display:block;margin:10px auto;background:#fff;border-radius:12px;padding:6px;">
+            <div id="payTimer" style="font-size:13px;color:#94a3b8;margin-bottom:10px;">10:00</div>
+            <a id="payOpenAppBtn" href="#" rel="noopener noreferrer" class="btn-login-telegram-modal mb-2"
+               style="display:none;background-color:#e21a1a;">
+                <i class="bi bi-bank2"></i> <span id="payOpenAppText">Open bank app (ABA, ACLEDA...)</span>
+            </a>
+            <div id="payStatus" style="font-size:12px;color:#94a3b8;margin-bottom:12px;">
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                <span id="payStatusText">Waiting for payment...</span>
+            </div>
+            <button type="button" id="payCancelBtn" class="custom-modal-btn custom-modal-btn-cancel w-100 py-2">Cancel</button>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 
     <!-- Supabase Integration & Logic Script -->
     <script type="module">
@@ -1733,6 +1721,69 @@
         const SUPABASE_URL = "https://dfrqmwytnseckrcjrwca.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmcnFtd3l0bnNlY2tyY2pyd2NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNTk3OTcsImV4cCI6MjEwMjYzNTc5N30.uVaBe7ze07SZbWtD7ygtLboyQD8n_3v_jlMae_N7Rnw";
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ================= ADMIN-EDITABLE PROMO BAR + HERO TEXT =================
+        let SITE = {};
+        function applyPromo() {
+            const bar = document.getElementById("promoBar"), p = SITE.promo;
+            if (!bar || !p) return;
+            if (p.on === false) { bar.style.display = "none"; return; }
+            const box = bar.querySelector("div"); box.textContent = "";
+            const b = document.createElement("span"); b.className = "badge-pill-amber"; b.textContent = p.badge || ""; if (p.badge) box.append(b);
+            box.append(" " + (p.text || "") + " ");
+            if (p.strong) { const st = document.createElement("strong"); st.style.color = "#d97706"; st.textContent = p.strong; box.append(st, " "); }
+            if (p.btn) {
+                const a = document.createElement("a"); a.className = "promo-get-started-btn"; a.textContent = p.btn;
+                const u = String(p.url || "index.html?products=all"); a.href = (/^https:\/\//.test(u) || /^index\.html/.test(u)) ? u : "index.html?products=all";
+                box.append(a);
+            }
+        }
+        function applyHeroOverride() {
+            const h = SITE.hero; if (!h) return;
+            const L = currentLang === "kh" ? "kh" : "en";
+            [["welcomeBadge", "badge"], ["heroMainTitle", "title"], ["heroSubtitle", "sub"]].forEach(([id, k]) => {
+                const v = String(h[k + "_" + L] || "").trim(), el = document.getElementById(id);
+                if (v && el) el.textContent = v;
+            });
+        }
+        (async function loadSite() {
+            try {
+                const r = await fetch(`${SUPABASE_URL}/rest/v1/app_settings?select=key,value&key=in.(promo,hero)`, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY } });
+                if (!r.ok) return;
+                for (const row of await r.json()) { try { SITE[row.key] = typeof row.value === "string" ? JSON.parse(row.value) : row.value; } catch (_) {} }
+                applyPromo(); applyHeroOverride();
+            } catch (_) {}
+        })();
+
+        // ================= ADMIN "RELOAD ALL USERS" =================
+        // The admin dashboard changes the setting `reload_token`. When it changes, every open page reloads.
+        (function watchReload() {
+            let baseline = null;
+            async function readToken() {
+                try {
+                    const r = await fetch(`${SUPABASE_URL}/rest/v1/app_settings?select=value&key=eq.reload_token`, {
+                        headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY },
+                        cache: "no-store",
+                    });
+                    if (!r.ok) return null;
+                    const rows = await r.json();
+                    return rows.length ? String(rows[0].value ?? "").replace(/"/g, "") : "";
+                } catch (_) { return null; }
+            }
+            async function check() {
+                const t = await readToken();
+                if (t === null) return;                       // network problem: try again later
+                if (baseline === null) { baseline = t; return; }
+                if (t !== baseline) {
+                    // do not interrupt a customer who is paying / reading a popup: wait for the next check
+                    if (document.querySelector(".custom-modal-overlay.active")) return;
+                    location.reload();
+                }
+            }
+            check();
+            setInterval(check, 15000);
+            document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+        })();
 
         // ================= TELEGRAM MINI APP =================
         const tg = window.Telegram?.WebApp;
@@ -1753,6 +1804,30 @@
                 }
             } catch (_) { /* fall through */ }
             window.open(url, "_blank", "noopener");
+        }
+
+        // Silent login: Telegram already knows who the user is
+        let miniLoginPromise = null;
+        function miniAppLogin(force = false) {
+            if (!IN_TG) return Promise.resolve(false);
+            if (!miniLoginPromise || force) miniLoginPromise = (async () => {
+                try {
+                    if (!force) {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        const sameUser = String(session?.user?.user_metadata?.telegram_id || "") === String(tg.initDataUnsafe?.user?.id || "");
+                        if (session && sameUser) return true;
+                    }
+                    const { data, error } = await supabase.functions.invoke("telegram-miniapp-login", {
+                        body: { init_data: tg.initData }
+                    });
+                    if (error || !data?.token_hash) { console.error("mini app login failed:", error || data); return false; }
+                    let { error: otpErr } = await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "magiclink" });
+                    if (otpErr) ({ error: otpErr } = await supabase.auth.verifyOtp({ token_hash: data.token_hash, type: "email" }));
+                    if (otpErr) { console.error("verifyOtp failed:", otpErr); return false; }
+                    return true;
+                } catch (e) { console.error(e); return false; }
+            })();
+            return miniLoginPromise;
         }
 
         // Telegram's own Back button follows the in-page navigation
@@ -1783,65 +1858,21 @@
             navigator.geolocation.getCurrentPosition(ok, fail, opts);
         }
 
-        // External links open correctly inside Telegram
+        // Login links and external links behave correctly inside Telegram
         document.addEventListener("click", (e) => {
             if (!IN_TG) return;
             const a = e.target.closest("a[href]");
-            if (a && a.target === "_blank" && /^https?:/i.test(a.href)) {
+            if (!a) return;
+            if (/\/login\.html($|[?#])/.test(a.href)) {
+                e.preventDefault(); e.stopImmediatePropagation();
+                miniAppLogin(true).then((ok) => { if (ok) navigate("?view=account"); });
+                return;
+            }
+            if (a.target === "_blank" && /^https?:/i.test(a.href)) {
                 e.preventDefault();
                 openExternal(a.href);
             }
         }, true);
-
-        // ================= STORE SETTINGS (set from the admin dashboard) =================
-        let storeOpen = true;
-        let closedMessage = "";
-        let bannerTimer = null;
-        let lastBannerSig = "";
-        const bannerUrl = (v) => `${SUPABASE_URL}/functions/v1/smart-function?f=${encodeURIComponent(String(v).slice(3))}`;
-
-        function applyStoreCover() {
-            const cover = document.getElementById("storeClosedCover");
-            if (!cover) return;
-            const kh = currentLang === "kh";
-            document.getElementById("storeClosedTitle").textContent = kh ? "ហាងបិទហើយ" : "We are closed";
-            document.getElementById("storeClosedMsg").textContent = closedMessage ||
-                (kh ? "សូមអភ័យទោស ហាងបិទបណ្ដោះអាសន្ន។ សូមត្រឡប់មកវិញពេលក្រោយ។" : "Sorry, the store is temporarily closed. Please come back later.");
-            cover.style.display = storeOpen ? "none" : "flex";
-            document.body.style.overflow = storeOpen ? "" : "hidden";
-        }
-
-        function applyBanners(list) {
-            const heroCard = document.getElementById("heroBannerCard");
-            if (!heroCard) return;
-            clearInterval(bannerTimer);
-            if (!list.length) { loadHeroBannerImage(); return; }   // no banner set: back to the default picture
-            const urls = list.map(bannerUrl);
-            urls.forEach((u) => { const im = new Image(); im.src = u; });
-            let i = 0;
-            const show = () => { heroCard.style.backgroundImage = `url('${urls[i]}')`; heroCard.textContent = ""; };
-            show();
-            if (urls.length > 1) bannerTimer = setInterval(() => { i = (i + 1) % urls.length; show(); }, 4000);
-        }
-
-        async function loadStoreSettings() {
-            try {
-                const { data, error } = await supabase.from("app_settings").select("key, value")
-                    .in("key", ["is_store_open", "closed_message", "banners"]);
-                if (error || !data) return;   // if settings can not be read, keep the store open
-                const get = (k) => data.find((r) => r.key === k)?.value;
-                const clean = (v) => String(v ?? "").replace(/^"|"$/g, "");
-                storeOpen = clean(get("is_store_open")).trim().toLowerCase() !== "false";
-                closedMessage = clean(get("closed_message")).trim();
-                applyStoreCover();
-
-                let b = get("banners");
-                try { if (typeof b === "string") b = JSON.parse(b); } catch (_) { b = []; }
-                const list = Array.isArray(b) ? b.filter((x) => typeof x === "string" && x.startsWith("tg:")) : [];
-                const sig = list.join("|");
-                if (sig !== lastBannerSig) { lastBannerSig = sig; applyBanners(list); }
-            } catch (e) { console.error("settings:", e); }
-        }
 
         const STORAGE_BUCKET = "project";
         const HERO_BANNER_FILE = "1. LOGO/hero banner*/x1.jpg";
@@ -2018,6 +2049,7 @@
             document.getElementById("welcomeBadge").textContent = t.welcomeBadge;
             document.getElementById("heroMainTitle").textContent = t.heroMainTitle;
             document.getElementById("heroSubtitle").textContent = t.heroSubtitle;
+            applyHeroOverride();
             document.getElementById("shopNowText").textContent = t.shopNow;
             document.getElementById("mostPopularBtn").textContent = t.mostPopularBtn;
             document.getElementById("accessoriesHeading").textContent = t.accessoriesHeading;
@@ -2055,8 +2087,7 @@
             renderSubnavCategories();
             renderNewArrivals();
             renderProducts();
-            if (currentMode() === "cart") { renderCart(); updateUsernameGate(); }
-            applyStoreCover();
+            if (currentMode() === "cart") renderCart();
             if (currentMode() === "account") loadUserProfile();
             if (currentMode() === "detail" && mainProductData) {
                 renderProductDetails();
@@ -2166,9 +2197,14 @@
         document.getElementById("modalCancelBtn")?.addEventListener("click", () => modal.classList.remove("active"));
         modal?.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("active"); });
 
-        function handleAccountClick(e) {
+        async function handleAccountClick(e) {
             e.preventDefault();
-            navigate("?view=account");
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                navigate("?view=account");
+            } else {
+                modal.classList.add("active");
+            }
         }
         document.querySelectorAll(".account-trigger-btn").forEach(btn => btn.addEventListener("click", handleAccountClick));
 
@@ -2867,8 +2903,8 @@
                 lblAddress: "អាសយដ្ឋានដឹកជញ្ជូន / ទីតាំង",
                 placeholderAddress: "ឧ. ផ្លូវ ២៧១ ភ្នំពេញ",
                 lblTotal: "សរុបរួម",
-                submitHint: "ចុចប៊ូតុងដើម្បីផ្ញើការបញ្ជាទិញទៅហាង",
-                submitOrderBtn: "ផ្ញើការបញ្ជាទិញ",
+                submitHint: "បង់ប្រាក់តាម ABA, ACLEDA ឬធនាគារដែលគាំទ្រ Bakong",
+                submitOrderBtn: "បង់ប្រាក់តាម Bakong KHQR",
                 emptyCart: "គ្មានទំនិញនៅក្នុងកន្ត្រករបស់អ្នកទេ។",
                 each: "ក្នុងមួយ",
                 alertEmptyCart: "កន្ត្រកទំនិញរបស់អ្នកទទេ! សូមបន្ថែមទំនិញមុននឹងបញ្ជាទិញ។",
@@ -2908,8 +2944,8 @@
                 lblAddress: "Delivery Address / Location",
                 placeholderAddress: "e.g. St 271, Phnom Penh",
                 lblTotal: "Total",
-                submitHint: "Press the button to send your order to the store",
-                submitOrderBtn: "Send Order",
+                submitHint: "Pay with ABA, ACLEDA or any Bakong bank app",
+                submitOrderBtn: "Pay with Bakong KHQR",
                 emptyCart: "Your cart is empty.",
                 each: "each",
                 alertEmptyCart: "Your shopping cart is empty! Please add products before placing an order.",
@@ -3038,51 +3074,36 @@
             document.getElementById("custAddress").placeholder = t.placeholderAddress;
         }
 
-        // Lock the Send button until the customer has a Telegram username
-        function updateUsernameGate() {
-            const btn = document.getElementById("btnSubmitOrder");
-            if (!btn) return;
-            const kh = currentLang === "kh";
-            const hasUsername = !!(IN_TG && tg.initDataUnsafe?.user?.username);
-            const blocked = !hasUsername;
-
-            btn.disabled = blocked;
-            btn.style.opacity = blocked ? "0.45" : "";
-            btn.style.cursor = blocked ? "not-allowed" : "";
-
-            let warn = document.getElementById("usernameWarning");
-            if (!warn) {
-                warn = document.createElement("div");
-                warn.id = "usernameWarning";
-                warn.setAttribute("role", "alert");
-                warn.style.cssText = "margin:12px 0;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.5;background:rgba(220,38,38,.10);border:1px solid rgba(220,38,38,.35);color:#dc2626;";
-                btn.closest(".checkout-action")?.before(warn);
-            }
-            if (!blocked) { warn.style.display = "none"; return; }
-            warn.style.display = "block";
-            warn.textContent = IN_TG
-                ? (kh ? "អ្នកត្រូវមាន Telegram Username ដើម្បីបញ្ជាទិញ។ សូមកំណត់វាក្នុង Telegram Settings → Username រួចបើកហាងនេះម្តងទៀត។"
-                      : "You need a Telegram username to order. Set one in Telegram Settings → Username, then reopen this store.")
-                : (kh ? "សូមបើកហាងនេះក្នុង Telegram ដើម្បីបញ្ជាទិញ។" : "Please open this store inside Telegram to order.");
-        }
-
-        // Fill the contact form from Telegram (no login needed)
+        // Fill the contact form from the logged-in Supabase session
         async function checkAuth() {
-            const u = IN_TG ? tg.initDataUnsafe?.user : null;
-            currentUserSession = u ? { tg_user: u } : null;
-            updateUsernameGate();
+            const { data: { session } } = await supabase.auth.getSession();
+            currentUserSession = session;
 
             const nameEl = document.getElementById("custName");
             const userEl = document.getElementById("custUsername");
             const phoneEl = document.getElementById("custPhone");
             const addrEl = document.getElementById("custAddress");
 
-            if (!u) { nameEl.value = ""; userEl.value = ""; return; }
+            if (!session || !session.user) { nameEl.value = ""; userEl.value = ""; return; }
 
-            nameEl.value = `${u.first_name || ""} ${u.last_name || ""}`.trim() || "User";
-            userEl.value = u.username ? `@${u.username}` : "";
-            userEl.placeholder = currentLang === "kh" ? "សូមកំណត់ Username ក្នុង Telegram Settings" : "Set a username in Telegram Settings";
-            if (!phoneEl.value) phoneEl.value = localStorage.getItem("cust_phone") || "";
+            const m = session.user.user_metadata || {};
+            const telegramId = String(m.id || m.telegram_id || "");
+            let username = m.username || "";
+            let phone = m.phone || m.phone_number || "";
+
+            if (telegramId) {
+                const { data: liveUserRow } = await supabase
+                    .from("users").select("username, phone").eq("telegram_id", telegramId).maybeSingle();
+                if (liveUserRow) {
+                    if (liveUserRow.username) username = liveUserRow.username.trim();
+                    if (liveUserRow.phone) phone = liveUserRow.phone.trim();
+                }
+            }
+
+            nameEl.value = (m.full_name || m.name || "User").trim();
+            if (username) userEl.value = `@${username}`;
+            if (phone && !phoneEl.value) phoneEl.value = phone;
+            document.getElementById("custEmail").value = session.user.email || "";
 
             const pendingAddress = sessionStorage.getItem("pending_address_text");
             if (pendingAddress && !addrEl.value) addrEl.value = pendingAddress;
@@ -3189,21 +3210,6 @@
             });
 
             document.getElementById("totalVal").textContent = `$${subtotal.toFixed(2)}`;
-            showServerTotal();
-        }
-
-        // The total shown (and the one used for the order) is calculated on the server
-        async function showServerTotal() {
-            const items = getCart()
-                .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
-                .filter(i => i.id);
-            if (items.length === 0) return;
-            try {
-                const { data } = await supabase.functions.invoke("smart-function", { body: { action: "quote", items } });
-                if (data && data.total != null && currentMode() === "cart") {
-                    document.getElementById("totalVal").textContent = `$${Number(data.total).toFixed(2)}`;
-                }
-            } catch (_) { /* keep the local total */ }
         }
 
         function updateQty(index, change) {
@@ -3240,187 +3246,215 @@
         function triggerOrderProcess(e) {
             if (e) e.preventDefault();
             const t = cartTr[currentLang];
-            const kh = currentLang === "kh";
 
-            if (!storeOpen) { applyStoreCover(); return; }
-            if (!IN_TG) {
-                showCustomAlert(kh ? "សូមបើកហាងនេះក្នុង Telegram ដើម្បីផ្ញើការបញ្ជាទិញ។" : "Please open this store inside Telegram to send your order.");
-                return;
-            }
-            const u = tg.initDataUnsafe?.user;
-            if (!u || !u.username) {
-                showCustomAlert(kh
-                    ? "អ្នកត្រូវមាន Telegram Username ដើម្បីបញ្ជាទិញ។ សូមកំណត់វាក្នុង Telegram Settings រួចព្យាយាមម្តងទៀត។"
-                    : "You need a Telegram username to order. Please set one in Telegram Settings, then try again.");
-                return;
-            }
+            if (!currentUserSession) { modal.classList.add("active"); return; }
+
             if (getCart().length === 0) { showCustomAlert(t.alertEmptyCart); return; }
 
             const phone = document.getElementById("custPhone").value.trim();
             if (phone && !/^[0-9+\-\s()]{8,15}$/.test(phone)) {
-                showCustomAlert(kh ? "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ" : "Please enter a valid phone number.");
+                showCustomAlert(currentLang === "kh" ? "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ" : "Please enter a valid phone number.");
                 return;
             }
-            openOrderModal();
+            startPayment();
+        }
+        document.getElementById("btnSubmitOrder").addEventListener("click", triggerOrderProcess);
+
+        // ================= BAKONG KHQR PAYMENT =================
+        const payModal = document.getElementById("payModal");
+        let activePayment = null;
+        let payPollTimer = null;
+        let payCountdownTimer = null;
+        let payPolling = false;
+
+        const payText = () => currentLang === "kh" ? {
+            title: "បង់ប្រាក់តាម Bakong KHQR",
+            desc: "ស្កេនជាមួយ ABA, ACLEDA ឬកម្មវិធីធនាគារណាមួយដែលគាំទ្រ Bakong",
+            open: "បើកកម្មវិធីធនាគារ (ABA, ACLEDA...)",
+            wait: "កំពុងរង់ចាំការទូទាត់...",
+            cancel: "បោះបង់",
+            paid: "ការទូទាត់ជោគជ័យ! យើងនឹងទាក់ទងអ្នកវិញក្នុងពេលឆាប់ៗ។",
+            expired: "QR ផុតកំណត់ហើយ។ សូមចុចទូទាត់ម្តងទៀត។",
+            fail: "មិនអាចចាប់ផ្តើមការទូទាត់បានទេ។ សូមព្យាយាមម្តងទៀត។"
+        } : {
+            title: "Pay with Bakong KHQR",
+            desc: "Scan with ABA, ACLEDA or any Bakong bank app.",
+            open: "Open bank app (ABA, ACLEDA...)",
+            wait: "Waiting for payment...",
+            cancel: "Cancel",
+            paid: "Payment received! We will contact you shortly.",
+            expired: "This QR has expired. Please press pay again.",
+            fail: "Could not start the payment. Please try again."
+        };
+
+        function stopPayTimers() {
+            clearInterval(payPollTimer);
+            clearInterval(payCountdownTimer);
+            payPollTimer = null;
+            payCountdownTimer = null;
         }
 
-        // Send the cart to the store owner's Telegram
-        let sendingOrder = false;
-        async function sendOrder() {
-            if (sendingOrder) return;
-            const kh = currentLang === "kh";
+        function closePayModal() {
+            stopPayTimers();
+            payModal.classList.remove("active");
+            activePayment = null;
+            localStorage.removeItem("pending_payment");
+        }
+
+        async function pollPayment() {
+            if (!activePayment || payPolling) return;
+            payPolling = true;
+            try {
+                const { data, error } = await supabase.functions.invoke("check-payment", {
+                    body: { order_id: activePayment.order_id }
+                });
+                if (error || !data) return;
+                if (data.status === "paid") {
+                    closePayModal();
+                    localStorage.removeItem("cart");
+                    updateCartBadge();
+                    if (currentMode() === "cart") renderCart();
+                    showSuccessModal(payText().paid, "", () => navigate(""));
+                } else if (data.status === "expired") {
+                    closePayModal();
+                    showCustomAlert(payText().expired);
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                payPolling = false;
+            }
+        }
+
+        function updateCountdown() {
+            if (!activePayment) return;
+            const left = Math.floor((new Date(activePayment.expires_at).getTime() - Date.now()) / 1000);
+            const timerEl = document.getElementById("payTimer");
+            if (left > 0) {
+                timerEl.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
+            } else {
+                timerEl.textContent = "00:00";
+                if (left < -30) { // 30 seconds of grace for the bank, then close
+                    closePayModal();
+                    showCustomAlert(payText().expired);
+                }
+            }
+        }
+
+        function openPayModal(p, autoOpenBankApp) {
+            if (!window.QRCode) { showCustomAlert(payText().fail); return; }
+            activePayment = p;
+            const tx = payText();
+            document.getElementById("payTitle").textContent = tx.title;
+            document.getElementById("payDesc").textContent = tx.desc;
+            document.getElementById("payOpenAppText").textContent = tx.open;
+            document.getElementById("payStatusText").textContent = tx.wait;
+            document.getElementById("payCancelBtn").textContent = tx.cancel;
+            document.getElementById("payAmount").textContent = "$" + Number(p.amount).toFixed(2);
+
+            window.QRCode.toDataURL(p.qr, { width: 240, margin: 1, errorCorrectionLevel: "M" }, (err, url) => {
+                if (!err) document.getElementById("payQrImg").src = url;
+            });
+
+            const openBtn = document.getElementById("payOpenAppBtn");
+            if (p.deeplink && /^https:\/\//.test(p.deeplink)) {
+                openBtn.href = p.deeplink;
+                openBtn.onclick = (ev) => { if (IN_TG) { ev.preventDefault(); openExternal(p.deeplink); } };
+                openBtn.style.display = "flex";
+            } else {
+                openBtn.style.display = "none";
+            }
+
+            payModal.classList.add("active");
+            updateCountdown();
+            stopPayTimers();
+            payCountdownTimer = setInterval(updateCountdown, 1000);
+            payPollTimer = setInterval(pollPayment, 3000);
+
+            // On a phone, go straight to the bank app
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (autoOpenBankApp && isMobile && openBtn.style.display !== "none") {
+                setTimeout(() => openExternal(p.deeplink), 700);
+            }
+        }
+
+        async function startPayment() {
+            if (!currentUserSession) { modal.classList.add("active"); return; }
             const items = getCart()
                 .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
                 .filter(i => i.id);
             if (items.length === 0) { showCustomAlert(cartTr[currentLang].alertEmptyCart); return; }
 
-            sendingOrder = true;
             const loading = document.getElementById("verifyLoadingModal");
             loading.classList.add("active");
             try {
-                const phone = document.getElementById("custPhone").value.trim();
-                const { data, error } = await supabase.functions.invoke("smart-function", {
+                const { data, error } = await supabase.functions.invoke("create-payment", {
                     body: {
-                        init_data: tg.initData,
                         items,
                         address: document.getElementById("custAddress").value.trim(),
-                        phone,
+                        phone: document.getElementById("custPhone").value.trim(),
                         mapLink: pinnedLocationLink || ""
                     }
                 });
-                if (error || !data?.success) {
-                    let msg = kh ? "មិនអាចផ្ញើការបញ្ជាទិញបានទេ។ សូមព្យាយាមម្តងទៀត។" : "Could not send your order. Please try again.";
+                if (error || !data?.qr) {
+                    let msg = payText().fail;
                     try {
                         const j = await error?.context?.json?.();
                         if (j?.error) msg = j.error;
-                        if (j?.code === "store_closed") { storeOpen = false; closedMessage = j.error || ""; applyStoreCover(); }
                     } catch (_) { /* keep generic message */ }
                     throw new Error(msg);
                 }
+                const payment = {
+                    order_id: data.order_id,
+                    qr: data.qr,
+                    deeplink: data.deeplink || null,
+                    amount: data.amount,
+                    expires_at: data.expires_at
+                };
+                localStorage.setItem("pending_payment", JSON.stringify(payment));
                 loading.classList.remove("active");
-                if (phone) localStorage.setItem("cust_phone", phone);
-                saveCart([]);
-                pinnedLocationLink = "";
-                sessionStorage.removeItem("pending_pinned_link");
-                sessionStorage.removeItem("pending_address_text");
-                document.getElementById("custAddress").value = "";
-                showSuccessModal(
-                    kh ? "ការបញ្ជាទិញរបស់អ្នកត្រូវបានផ្ញើទៅហាងរួចហើយ។ យើងនឹងទាក់ទងអ្នកតាម Telegram ឆាប់ៗនេះ។"
-                       : "Your order was sent to the store. We will contact you on Telegram soon.",
-                    kh ? "ការបញ្ជាទិញត្រូវបានផ្ញើ" : "Order sent",
-                    () => navigate("")
-                );
+                openPayModal(payment, true);
             } catch (err) {
                 loading.classList.remove("active");
-                showCustomAlert(err.message);
+                showCustomAlert(err.message || payText().fail);
                 console.error(err);
-            } finally {
-                sendingOrder = false;
             }
         }
-        document.getElementById("btnSubmitOrder").addEventListener("click", triggerOrderProcess);
 
-        // ================= ORDER CONFIRM POPUP =================
-        const orderModal = document.getElementById("orderModal");
-        const orderText = () => currentLang === "kh" ? {
-            title: "បញ្ជាក់ការបញ្ជាទិញ",
-            hint: "ហាងនឹងទទួលបានការបញ្ជាទិញនេះតាម Telegram ហើយនឹងទាក់ទងអ្នក។",
-            send: "ផ្ញើទៅហាង", cancel: "បោះបង់",
-            telegram: "Telegram", name: "ឈ្មោះ", phone: "ទូរស័ព្ទ", address: "អាសយដ្ឋាន", location: "ទីតាំង GPS",
-            pinned: "បានបញ្ជាក់ទីតាំង", notPinned: "មិនបានបញ្ជាក់ទេ", calc: "កំពុងគណនា..."
-        } : {
-            title: "Confirm your order",
-            hint: "The store will receive your order on Telegram and contact you.",
-            send: "Send to store", cancel: "Cancel",
-            telegram: "Telegram", name: "Name", phone: "Phone", address: "Address", location: "GPS location",
-            pinned: "Pinned", notPinned: "Not pinned", calc: "Calculating..."
-        };
-
-        function orderLine(left, right, bold) {
-            const row = document.createElement("div");
-            row.style.cssText = "display:flex;justify-content:space-between;gap:12px;padding:3px 0;" + (bold ? "font-weight:600;" : "");
-            const l = document.createElement("span"); l.textContent = left;
-            const r = document.createElement("span"); r.textContent = right; r.style.textAlign = "right";
-            if (!bold) l.style.color = "#94a3b8";
-            row.append(l, r);
-            return row;
-        }
-
-        async function openOrderModal() {
-            const tx = orderText();
-            const u = tg.initDataUnsafe?.user || {};
-            const cart = getCart();
-
-            document.getElementById("orderTitle").textContent = tx.title;
-            document.getElementById("orderHint").textContent = tx.hint;
-            document.getElementById("orderConfirmText").textContent = tx.send;
-            document.getElementById("orderCancelBtn").textContent = tx.cancel;
-            const totalEl = document.getElementById("orderTotal");
-            totalEl.textContent = tx.calc;
-            const confirmBtn = document.getElementById("orderConfirmBtn");
-            confirmBtn.disabled = true;
-
-            const itemsBox = document.getElementById("orderItems");
-            itemsBox.textContent = "";
-            cart.forEach((i) => {
-                const qty = Math.max(1, parseInt(i.quantity) || 1);
-                const name = (currentLang === "kh" && i.name_kh) ? i.name_kh : (i.name || "Product");
-                const line = (Number(i.price) || 0) * qty;
-                itemsBox.appendChild(orderLine(`${name} × ${qty}`, `$${line.toFixed(2)}`, true));
-            });
-
-            const info = document.getElementById("orderInfo");
-            info.textContent = "";
-            const fullName = `${u.first_name || ""} ${u.last_name || ""}`.trim();
-            info.appendChild(orderLine(tx.telegram, u.username ? `@${u.username}` : "-"));
-            info.appendChild(orderLine(tx.name, fullName || "-"));
-            info.appendChild(orderLine(tx.phone, document.getElementById("custPhone").value.trim() || "-"));
-            const addr = document.getElementById("custAddress").value.trim();
-            info.appendChild(orderLine(tx.address, pinnedLocationLink ? "-" : (addr || "-")));
-            info.appendChild(orderLine(tx.location, pinnedLocationLink ? tx.pinned : tx.notPinned));
-
-            orderModal.classList.add("active");
-
-            // The total shown here is calculated by the server
-            const items = cart
-                .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
-                .filter(i => i.id);
+        // Coming back from the bank app (or reopening the cart): keep waiting for the payment
+        function resumePendingPayment() {
+            if (!currentUserSession || activePayment) return;
             try {
-                const { data, error } = await supabase.functions.invoke("smart-function", { body: { action: "quote", items } });
-                if (!orderModal.classList.contains("active")) return;
-                if (error || data?.total == null) {
-                    let msg = currentLang === "kh" ? "មិនអាចគណនាតម្លៃបានទេ។ សូមព្យាយាមម្តងទៀត។" : "Could not calculate the price. Please try again.";
-                    try { const j = await error?.context?.json?.(); if (j?.error) msg = j.error; } catch (_) { /* keep generic */ }
-                    orderModal.classList.remove("active");
-                    showCustomAlert(msg);
-                    return;
+                const p = JSON.parse(localStorage.getItem("pending_payment") || "null");
+                if (p && p.order_id && p.qr && new Date(p.expires_at).getTime() > Date.now() - 30000) {
+                    openPayModal(p, false);
+                    pollPayment();
+                } else {
+                    localStorage.removeItem("pending_payment");
                 }
-                totalEl.textContent = `$${Number(data.total).toFixed(2)}`;
-                confirmBtn.disabled = false;
-            } catch (e) {
-                console.error(e);
-                orderModal.classList.remove("active");
-                showCustomAlert(currentLang === "kh" ? "មិនអាចភ្ជាប់ទៅម៉ាស៊ីនមេបានទេ។" : "Could not reach the server.");
+            } catch (_) {
+                localStorage.removeItem("pending_payment");
             }
         }
 
-        document.getElementById("orderCancelBtn").addEventListener("click", () => orderModal.classList.remove("active"));
-        document.getElementById("orderConfirmBtn").addEventListener("click", () => {
-            orderModal.classList.remove("active");
-            sendOrder();
-        });
+        document.getElementById("payCancelBtn").addEventListener("click", closePayModal);
 
         async function enterCartView() {
             applyCartLanguage();
             await checkAuth();
             if (currentMode() !== "cart") return;
             renderCart();
+            resumePendingPayment();
         }
 
         // Leaving the cart page: hide the QR popup but keep the pending payment so it resumes on return
         function leaveCartView() {
             cartRenderToken++;
-            orderModal.classList.remove("active");
+            if (activePayment) {
+                stopPayTimers();
+                payModal.classList.remove("active");
+                activePayment = null;
+            }
         }
 
         // =====================================================================
@@ -3481,39 +3515,104 @@
         async function loadUserProfile() {
             const container = document.getElementById("profileCard");
             const t = userTr[currentLang];
-            const kh = currentLang === "kh";
+
+            // The real login is the Supabase session (not browser storage)
+            const { data: { session } } = await supabase.auth.getSession();
             if (currentMode() !== "account") return;
 
-            const u = IN_TG ? tg.initDataUnsafe?.user : null;
-            if (!u) {
+            if (!session) {
                 container.innerHTML = `
                     <div class="profile-avatar-wrapper">
                         <div class="profile-avatar-placeholder"><i class="bi bi-person fs-3"></i></div>
                     </div>
-                    <p class="text-muted mb-4" style="font-size: 12px; line-height: 1.5;">${kh ? "សូមបើកហាងនេះក្នុង Telegram ដើម្បីមើលឈ្មោះរបស់អ្នក។" : "Open this store inside Telegram to see your name."}</p>
+                    <h4 class="mb-2 fs-6 fw-bold text-dark">${t.guestTitle}</h4>
+                    <p class="text-muted mb-4" style="font-size: 12px; line-height: 1.5;">${t.guestDesc}</p>
+                    <a href="login.html" class="btn-custom-pink"><i class="bi bi-telegram fs-5"></i> ${t.loginTelegram}</a>
                     <a href="index.html" class="btn-home"><i class="bi bi-house-door me-1"></i> ${t.btnHome}</a>
                 `;
                 return;
             }
 
-            const fullName = `${u.first_name || ""} ${u.last_name || ""}`.trim() || "User";
+            const m = session.user.user_metadata || {};
+            let phoneValue = m.phone || "";
+
+            if (!phoneValue && m.telegram_id) {
+                try {
+                    const { data: row } = await supabase
+                        .from("users").select("phone").eq("telegram_id", String(m.telegram_id)).maybeSingle();
+                    if (row?.phone) phoneValue = row.phone;
+                } catch (_) { /* keep empty */ }
+            }
+            if (currentMode() !== "account") return;
+
+            const fullName = (m.full_name || m.name || "").trim();
+            const firstLetter = (fullName || "U").charAt(0);
+            const username = m.username ? `@${m.username}` : "No username";
+            const phoneNumber = phoneValue || t.valNotVerified;
+            const userAvatar = decodeHtmlEntities(m.avatar_url || "");
+
+            let avatarHTML = "";
+            if (userAvatar && /^https:\/\//.test(userAvatar)) {
+                avatarHTML = `
+                    <div class="profile-avatar-wrapper">
+                        <img src="${esc(userAvatar)}" alt="Profile Picture" class="profile-avatar" id="profileImg">
+                        <div class="profile-avatar-placeholder" id="profileImgFallback" style="display: none;">${esc(firstLetter)}</div>
+                        <div class="status-dot"></div>
+                    </div>`;
+            } else {
+                avatarHTML = `
+                    <div class="profile-avatar-wrapper">
+                        <div class="profile-avatar-placeholder">${esc(firstLetter)}</div>
+                        <div class="status-dot"></div>
+                    </div>`;
+            }
+
             container.innerHTML = `
-                <div class="profile-avatar-wrapper">
-                    <div class="profile-avatar-placeholder">${esc(fullName.charAt(0))}</div>
+                ${avatarHTML}
+                <h4 class="mb-1 fs-6 fw-bold text-dark">${esc(fullName)}</h4>
+                <p class="text-muted mb-3" style="font-size: 12px;"><i class="bi bi-telegram text-primary me-1"></i> ${esc(username)}</p>
+
+                <div class="info-group">
+                    <div class="info-row">
+                        <span class="info-label">${t.lblTelegramId}</span>
+                        <span class="info-value font-monospace">${esc(m.telegram_id || "")}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">${t.lblPhone}</span>
+                        <span class="info-value">${esc(phoneNumber)}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">${t.lblStatus}</span>
+                        <span class="info-value text-success"><i class="bi bi-check-circle-fill me-1"></i> ${t.valVerified}</span>
+                    </div>
                 </div>
-                <h4 class="mb-4 fs-6 fw-bold text-dark">${esc(fullName)}</h4>
-                <a href="index.html" class="btn-home"><i class="bi bi-house-door me-1"></i> ${t.btnHome}</a>
+
+                <a href="index.html" class="btn-home mb-2"><i class="bi bi-house-door me-1"></i> ${t.btnHome}</a>
+                <button id="logoutBtn" class="btn-custom-outline-danger"><i class="bi bi-box-arrow-right me-1"></i> ${t.btnLogout}</button>
             `;
+
+            // If the picture can not load, show the first letter instead
+            document.getElementById("profileImg")?.addEventListener("error", (e) => {
+                e.target.style.display = "none";
+                const fb = document.getElementById("profileImgFallback");
+                if (fb) fb.style.display = "flex";
+            });
+
+            document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+                localStorage.removeItem("davin_user");
+                localStorage.removeItem("telegram_user");
+                await supabase.auth.signOut();
+                sessionStorage.clear();
+                window.location.href = "login.html";
+            });
         }
 
         // ---------- Start ----------
         loadHeroBannerImage();
         applyLanguage();
-        loadStoreSettings();
-        setInterval(loadStoreSettings, 60000);
-        document.addEventListener("visibilitychange", () => { if (!document.hidden) loadStoreSettings(); });
         fetchNewArrivals();
         const categoriesReady = fetchCategories();
+        await Promise.race([miniAppLogin(), new Promise((r) => setTimeout(r, 8000))]);
         route();
     </script>
 </body>
