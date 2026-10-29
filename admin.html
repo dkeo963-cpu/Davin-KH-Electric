@@ -68,6 +68,11 @@ label.f{display:block;font-size:12px;color:var(--sub);margin-top:4px}
   <h1>⚙️ Davin Electric — Admin</h1>
   <p class="sub" id="who"></p>
 
+  <div class="row" style="margin-bottom:14px">
+    <button class="btn s" id="t-general" style="flex:1">⚙️ ទូទៅ / General</button>
+    <button class="btn g s" id="t-products" style="flex:1">📦 ផលិតផល / Products</button>
+  </div>
+<div id="tab-general">
   <!-- Store open / close -->
   <div class="card">
     <h2>🏪 ស្ថានភាពហាង / Store status</h2>
@@ -113,6 +118,16 @@ label.f{display:block;font-size:12px;color:var(--sub);margin-top:4px}
     <button class="btn s" id="hr-save">រក្សាទុក / Save</button>
   </div>
 
+  <!-- Banners -->
+  <div class="card">
+    <h2>🖼️ រូបបដាទំព័រដើម / Main page banners</h2>
+    <p class="muted" style="margin:0 0 12px">រូបត្រូវបានរក្សាទុកក្នុង Telegram។ ប្រសិនបើមានច្រើន វានឹងផ្លាស់ប្តូរដោយស្វ័យប្រវត្តិ។ ទំហំល្អបំផុត 3:2។<br>Pictures are stored in Telegram. With several banners they rotate automatically. Best ratio 3:2.</p>
+    <div id="bn-list"></div>
+    <button class="btn" id="bn-add">📷 បន្ថែមរូប / Add picture</button>
+    <p class="muted" style="margin:10px 0 0">ពេលមិនមានរូប ហាងប្រើរូបលំនាំដើម។ / With no banner the store shows its default picture.</p>
+  </div>
+</div>
+<div id="tab-products" style="display:none">
   <!-- Products -->
   <div class="card">
     <h2>📦 ផលិតផល / Products &amp; New Arrival</h2>
@@ -122,14 +137,7 @@ label.f{display:block;font-size:12px;color:var(--sub);margin-top:4px}
     <div id="pr-list" class="muted">…</div>
   </div>
 
-  <!-- Banners -->
-  <div class="card">
-    <h2>🖼️ រូបបដាទំព័រដើម / Main page banners</h2>
-    <p class="muted" style="margin:0 0 12px">រូបត្រូវបានរក្សាទុកក្នុង Telegram។ ប្រសិនបើមានច្រើន វានឹងផ្លាស់ប្តូរដោយស្វ័យប្រវត្តិ។ ទំហំល្អបំផុត 3:2។<br>Pictures are stored in Telegram. With several banners they rotate automatically. Best ratio 3:2.</p>
-    <div id="bn-list"></div>
-    <button class="btn" id="bn-add">📷 បន្ថែមរូប / Add picture</button>
-    <p class="muted" style="margin:10px 0 0">ពេលមិនមានរូប ហាងប្រើរូបលំនាំដើម។ / With no banner the store shows its default picture.</p>
-  </div>
+</div>
 </div>
 
 <div id="ed" class="sheet"><div id="ed-body"></div></div>
@@ -355,6 +363,16 @@ $("bn-list").addEventListener("click", async (e) => {
   if (!(await saveBanners())) BN = backup;
   renderBanners();
 });
+
+/* ============ TABS ============ */
+function showTab(n) {
+  $("tab-general").style.display = n === "general" ? "" : "none";
+  $("tab-products").style.display = n === "products" ? "" : "none";
+  $("t-general").className = "btn s" + (n === "general" ? "" : " g");
+  $("t-products").className = "btn s" + (n === "products" ? "" : " g");
+  window.scrollTo(0, 0);
+}
+$("t-general").onclick = () => showTab("general"); $("t-products").onclick = () => showTab("products");
 
 /* ============ START ============ */
 async function load() {
