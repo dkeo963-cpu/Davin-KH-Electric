@@ -58,6 +58,37 @@ label.f{display:block;font-size:12px;color:var(--sub);margin-top:4px}
 .tag{background:var(--ok-l);color:var(--ok);border-radius:8px;padding:1px 7px;font-size:11px;margin-left:4px}
 .sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:15}
 .sheet.show{display:flex}.sheet>div{background:var(--card);width:100%;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.switch.sm{width:46px;height:26px;margin-left:0}
+.switch.sm::after{top:3px;left:3px;width:20px;height:20px}
+.switch.sm.on::after{left:23px}
+.fxrow{border-top:1px solid var(--line);padding:10px 0 2px;margin-top:6px}
+.fxhead{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.fxhead b{flex:1}
+.onoff{font-size:12px;color:var(--sub)}
+.onoff.on{color:var(--ok);font-weight:700}
+.pv{border:1px dashed var(--line);border-radius:10px;padding:8px 10px;margin:2px 0 8px;overflow:hidden;background:var(--bg);min-height:38px}
+.pv.off{opacity:.35}
+/* ===== Text animation styles (chosen in the admin panel) ===== */
+.fx-run{display:block!important;overflow:hidden;white-space:nowrap;width:100%;max-width:100%}
+.fx-run-in{display:inline-block;padding-left:100%;will-change:transform;animation:fxRun 14s linear infinite}
+.fx-run-right .fx-run-in{animation-direction:reverse}
+.fx-beat{animation:fxBeat calc(1.3s * var(--fx-m,1)) ease-in-out infinite}
+.fx-blink{animation:fxBlink calc(1.2s * var(--fx-m,1)) ease-in-out infinite}
+.fx-bounce{animation:fxBounce calc(1s * var(--fx-m,1)) ease-in-out infinite}
+.fx-glow{animation:fxGlow calc(1.8s * var(--fx-m,1)) ease-in-out infinite}
+.fx-shake{animation:fxShake calc(2.2s * var(--fx-m,1)) ease-in-out infinite}
+.fx-rainbow{animation:fxRainbow calc(5s * var(--fx-m,1)) linear infinite}
+@keyframes fxRun{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@keyframes fxBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.08)}30%{transform:scale(1)}45%{transform:scale(1.08)}60%{transform:scale(1)}}
+@keyframes fxBlink{0%,100%{opacity:1}50%{opacity:.15}}
+@keyframes fxBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes fxGlow{0%,100%{text-shadow:0 0 2px currentColor}50%{text-shadow:0 0 14px currentColor,0 0 4px currentColor}}
+@keyframes fxShake{0%,60%,100%{transform:translateX(0)}65%{transform:translateX(-4px)}70%{transform:translateX(4px)}75%{transform:translateX(-4px)}80%{transform:translateX(4px)}85%{transform:translateX(-2px)}90%{transform:translateX(0)}}
+@keyframes fxRainbow{0%,100%{color:#e91e63}20%{color:#ff9800}40%{color:#4caf50}60%{color:#2196f3}80%{color:#9c27b0}}
+@media (prefers-reduced-motion: reduce){
+  .fx-beat,.fx-blink,.fx-bounce,.fx-glow,.fx-shake,.fx-rainbow{animation:none}
+  .fx-run{white-space:normal}.fx-run-in{animation:none;padding-left:0;display:inline}
+}
 </style>
 </head>
 <body>
@@ -96,12 +127,18 @@ label.f{display:block;font-size:12px;color:var(--sub);margin-top:4px}
   <!-- Promo bar -->
   <div class="card">
     <h2>📣 របារប្រូម៉ូសិនខាងលើ / Top promo bar</h2>
-    <label class="f"><input type="checkbox" id="pm-on"> បង្ហាញ / Show the bar</label>
+    <div class="status" style="margin:8px 0 10px">
+      <span class="dot" id="pm-dot"></span><b class="onoff" data-for="pm-on" style="font-size:15px"></b>
+      <button class="switch" id="pm-on" data-sw aria-label="Show or hide the top promo bar"></button>
+    </div>
     <label class="f">Badge (e.g. Free Delivery)</label><input class="in" id="pm-badge" maxlength="40">
     <label class="f">Message</label><textarea id="pm-text" maxlength="300" style="min-height:56px"></textarea>
     <label class="f">Highlighted words (orange)</label><input class="in" id="pm-strong" maxlength="40">
     <label class="f">Button text (empty = no button)</label><input class="in" id="pm-btn" maxlength="30">
     <label class="f">Button link</label><input class="in" id="pm-url" maxlength="200" placeholder="index.html?products=all">
+    <label class="f">រចនាប័ទ្មអក្សរ / Text style</label><select class="in" id="pm-fx" data-fx></select>
+    <label class="f">ល្បឿន / Speed</label><select class="in" id="pm-speed" data-speed></select>
+    <label class="f">មើលជាមុន / Preview</label><div class="pv" id="pm-pv"></div>
     <button class="btn s" id="pm-save">រក្សាទុក / Save</button>
   </div>
 
@@ -115,6 +152,23 @@ label.f{display:block;font-size:12px;color:var(--sub);margin-top:4px}
     <label class="f">English · Welcome line</label><input class="in" id="hr-badge_en" maxlength="120">
     <label class="f">English · Title</label><textarea id="hr-title_en" maxlength="300" style="min-height:56px"></textarea>
     <label class="f">English · Subtitle</label><textarea id="hr-sub_en" maxlength="300" style="min-height:56px"></textarea>
+    <div class="muted" style="margin:14px 0 0"><b>បង្ហាញ / លាក់ និងរចនាប័ទ្មអក្សរ</b><br>Show / hide each line and choose how it moves.</div>
+    <div class="fxrow">
+      <div class="fxhead"><b>ពាក្យស្វាគមន៍ / Welcome line</b><span class="onoff" data-for="hr-on_badge"></span><button class="switch sm" id="hr-on_badge" data-sw aria-label="Show or hide: Welcome line"></button></div>
+      <select class="in" id="hr-fx_badge" data-fx></select>
+      <div class="pv" id="hr-pv_badge"></div>
+    </div>
+    <div class="fxrow">
+      <div class="fxhead"><b>ចំណងជើង / Title</b><span class="onoff" data-for="hr-on_title"></span><button class="switch sm" id="hr-on_title" data-sw aria-label="Show or hide: Title"></button></div>
+      <select class="in" id="hr-fx_title" data-fx></select>
+      <div class="pv" id="hr-pv_title"></div>
+    </div>
+    <div class="fxrow">
+      <div class="fxhead"><b>ចំណងជើងរង / Subtitle</b><span class="onoff" data-for="hr-on_sub"></span><button class="switch sm" id="hr-on_sub" data-sw aria-label="Show or hide: Subtitle"></button></div>
+      <select class="in" id="hr-fx_sub" data-fx></select>
+      <div class="pv" id="hr-pv_sub"></div>
+    </div>
+    <label class="f">ល្បឿន / Speed</label><select class="in" id="hr-speed" data-speed></select>
     <button class="btn s" id="hr-save">រក្សាទុក / Save</button>
   </div>
 
@@ -242,18 +296,92 @@ $("reload-all").onclick = async () => {
 };
 
 /* ============ PROMO + HERO TEXT ============ */
+// ---- Text animation styles (set in the admin panel): normal, running, beat, blink, bounce, glow, shake, rainbow ----
+const FX_NAMES = ["run-left", "run-right", "beat", "blink", "bounce", "glow", "shake", "rainbow"];
+const FX_CLASSES = ["fx-run", "fx-run-left", "fx-run-right", "fx-beat", "fx-blink", "fx-bounce", "fx-glow", "fx-shake", "fx-rainbow"];
+const FX_MULT = { slow: 1.7, normal: 1, fast: 0.55 };      // how long one beat/blink takes
+const FX_PXS = { slow: 40, normal: 75, fast: 130 };        // running text: pixels per second
+function unwrapFx(el) {
+    const w = el.firstElementChild;
+    if (w && w.classList.contains("fx-run-in") && el.children.length === 1) {
+        while (w.firstChild) el.insertBefore(w.firstChild, w);
+        w.remove();
+    }
+}
+function applyFx(el, fx, speed) {
+    if (!el) return;
+    unwrapFx(el);
+    FX_CLASSES.forEach((c) => el.classList.remove(c));
+    el.style.removeProperty("--fx-m");
+    if (!FX_NAMES.includes(fx)) return;                    // "none" / empty / unknown = normal text
+    const sp = FX_MULT[speed] ? speed : "normal";
+    if (fx === "run-left" || fx === "run-right") {
+        const inner = document.createElement("span"); inner.className = "fx-run-in";
+        while (el.firstChild) inner.appendChild(el.firstChild);
+        el.appendChild(inner);
+        el.classList.add("fx-run", "fx-" + fx);
+        requestAnimationFrame(() => { const w = inner.offsetWidth; if (w > 0) inner.style.animationDuration = Math.max(4, w / FX_PXS[sp]) + "s"; });
+    } else {
+        el.style.setProperty("--fx-m", String(FX_MULT[sp]));
+        el.classList.add("fx-" + fx);
+    }
+}
+
+const FX_LIST = [["none", "Normal / ធម្មតា (stays still)"], ["run-left", "Running ← right to left"], ["run-right", "Running → left to right"], ["beat", "Beat (heartbeat)"], ["blink", "Blink"], ["bounce", "Bounce"], ["glow", "Glow"], ["shake", "Shake"], ["rainbow", "Rainbow colours"]];
+const SPEED_LIST = [["slow", "Slow / យឺត"], ["normal", "Normal / ធម្មតា"], ["fast", "Fast / លឿន"]];
+const fxOk = (v) => FX_LIST.some(([k]) => k === v) ? v : "none";
+const spOk = (v) => SPEED_LIST.some(([k]) => k === v) ? v : "normal";
+document.querySelectorAll("select[data-fx]").forEach((s) => { s.innerHTML = FX_LIST.map(([k, l]) => `<option value="${k}">${l}</option>`).join(""); });
+document.querySelectorAll("select[data-speed]").forEach((s) => { s.innerHTML = SPEED_LIST.map(([k, l]) => `<option value="${k}">${l}</option>`).join(""); s.value = "normal"; });
+
+const getSw = (id) => $(id).classList.contains("on");
+function setSw(id, on) { $(id).classList.toggle("on", !!on); $(id).setAttribute("aria-pressed", on ? "true" : "false"); }
+function paintSwitches() {
+  document.querySelectorAll("[data-for]").forEach((s) => {
+    const on = getSw(s.dataset.for);
+    s.textContent = on ? "បង្ហាញ / Shown" : "លាក់ / Hidden";
+    s.classList.toggle("on", on);
+  });
+  $("pm-dot").className = "dot " + (getSw("pm-on") ? "open" : "closed");
+}
+function showPreview(box, text, fx, speed, hidden) {
+  box.classList.toggle("off", !!hidden);
+  box.innerHTML = "<div class=\"pvt\"></div>";
+  const t = box.firstChild; t.textContent = text;
+  applyFx(t, fx, speed);
+}
+function refreshPreviews() {
+  [["badge", "Welcome line"], ["title", "Title"], ["sub", "Subtitle"]].forEach(([k, label]) => {
+    const txt = $("hr-" + k + "_en").value.trim() || $("hr-" + k + "_kh").value.trim() || label;
+    showPreview($("hr-pv_" + k), txt, $("hr-fx_" + k).value, $("hr-speed").value, !getSw("hr-on_" + k));
+  });
+  const pt = [$("pm-badge").value, $("pm-text").value, $("pm-strong").value, $("pm-btn").value ? "[" + $("pm-btn").value + "]" : ""].map((x) => x.trim()).filter(Boolean).join("  ");
+  showPreview($("pm-pv"), pt || "Promo message", $("pm-fx").value, $("pm-speed").value, !getSw("pm-on"));
+}
+document.querySelectorAll("button[data-sw]").forEach((b) => b.addEventListener("click", () => { setSw(b.id, !getSw(b.id)); paintSwitches(); refreshPreviews(); }));
+document.querySelectorAll("select[data-fx], select[data-speed]").forEach((s) => s.addEventListener("change", refreshPreviews));
+document.querySelectorAll("#tab-general input.in, #tab-general textarea").forEach((el) => el.addEventListener("change", refreshPreviews));
+
 function fillForm(prefix, o, keys) { keys.forEach((k) => { const el = $(prefix + k); if (el) el.value = o[k] ?? ""; }); }
 function readForm(prefix, keys) { const o = {}; keys.forEach((k) => { o[k] = $(prefix + k).value.trim(); }); return o; }
 const PM_KEYS = ["badge", "text", "strong", "btn", "url"], HR_KEYS = ["badge_kh", "title_kh", "sub_kh", "badge_en", "title_en", "sub_en"];
+function loadHeroFx(hr) {
+  ["badge", "title", "sub"].forEach((k) => { setSw("hr-on_" + k, hr["on_" + k] !== false); $("hr-fx_" + k).value = fxOk(hr["fx_" + k]); });
+  $("hr-speed").value = spOk(hr.speed);
+}
 $("pm-save").onclick = async () => {
-  const o = readForm("pm-", PM_KEYS); o.on = $("pm-on").checked;
+  const o = readForm("pm-", PM_KEYS); o.on = getSw("pm-on"); o.fx = fxOk($("pm-fx").value); o.speed = spOk($("pm-speed").value);
   const r = await api({ action: "admin_set", key: "promo", value: JSON.stringify(o) });
   toast(r.error || "បានរក្សាទុក / Saved", r.error ? "err" : "ok");
 };
 $("hr-save").onclick = async () => {
-  const r = await api({ action: "admin_set", key: "hero", value: JSON.stringify(readForm("hr-", HR_KEYS)) });
+  const o = readForm("hr-", HR_KEYS);
+  ["badge", "title", "sub"].forEach((k) => { o["on_" + k] = getSw("hr-on_" + k); o["fx_" + k] = fxOk($("hr-fx_" + k).value); });
+  o.speed = spOk($("hr-speed").value);
+  const r = await api({ action: "admin_set", key: "hero", value: JSON.stringify(o) });
   toast(r.error || "បានរក្សាទុក / Saved", r.error ? "err" : "ok");
 };
+paintSwitches();
 
 /* ============ PRODUCTS / SUB-PRODUCTS ============ */
 const pubImg = (p) => !p ? "" : /^https?:/.test(p) ? p : `${SUPABASE_URL}/storage/v1/object/public/project/${p}`;
@@ -384,9 +512,9 @@ async function load() {
   BN = Array.isArray(b) ? b.filter((x) => typeof x === "string" && x.startsWith("tg:")) : [];
   paintStore(); renderBanners();
   const J = (k) => { let v = get(k); try { if (typeof v === "string") v = JSON.parse(v); } catch (_) { v = null; } return v && typeof v === "object" ? v : {}; };
-  const pm = J("promo"); fillForm("pm-", pm, PM_KEYS); $("pm-on").checked = pm.on !== false;
+  const pm = J("promo"); fillForm("pm-", pm, PM_KEYS); setSw("pm-on", pm.on !== false); $("pm-fx").value = fxOk(pm.fx); $("pm-speed").value = spOk(pm.speed);
   if (!("badge" in pm)) { $("pm-badge").value = "Free Delivery"; $("pm-text").value = "we will free delivery for more than 10items for you at every products"; $("pm-strong").value = "check it now"; $("pm-btn").value = "Get Started"; $("pm-url").value = "index.html?products=all"; }
-  fillForm("hr-", J("hero"), HR_KEYS);
+  const hr = J("hero"); fillForm("hr-", hr, HR_KEYS); loadHeroFx(hr); paintSwitches(); refreshPreviews();
   setTable("sub_products");
 }
 
