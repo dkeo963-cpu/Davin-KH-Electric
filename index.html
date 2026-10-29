@@ -4,21 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- Security: Content Security Policy (CSP) allowing Supabase, Unsplash, Telegram, and CDNs -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://telegram.org https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://*.supabase.co https://oauth.telegram.org; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://telegram.org https://cdn.jsdelivr.net; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://*.supabase.co https://images.unsplash.com https://*.telegram.org https://t.me https://*.t.me https://*.telegra.ph https://*.telegram-cdn.org https://*.telesco.pe https://placehold.co; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com; child-src https://www.youtube-nocookie.com https://www.youtube.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://oauth.telegram.org https://*.telegram.org;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://telegram.org https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://*.supabase.co https://oauth.telegram.org; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://telegram.org https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://*.telegram.org https://t.me https://*.t.me https://*.telegra.ph https://*.telegram-cdn.org https://*.telesco.pe https://placehold.co; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com; child-src https://www.youtube-nocookie.com https://www.youtube.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://oauth.telegram.org https://*.telegram.org;">
     <title>Davin Electric | Professional Technical Solutions</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         html.tg-mini body { padding-bottom: env(safe-area-inset-bottom); }
-        #pinMapModal { position: fixed; inset: 0; z-index: 1500; background: #fff; display: none; flex-direction: column; }
-        #pinMapModal.active { display: flex; }
-        #pinMapTop { padding: 10px 12px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid #e5e7eb; }
-        #pinMapTop .pm-title { font-weight: 700; font-size: 14px; flex: 1; }
-        #pinMapEl { flex: 1; min-height: 200px; }
-        #pinMapMsg { padding: 8px 12px; font-size: 12px; color: #64748b; }
-        #pinMapMsg.err { color: #dc2626; font-weight: 600; }
-        #pinMapBottom { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 8px; border-top: 1px solid #e5e7eb; }
-        #pinMapBottom button { flex: 1; }
-        #pinStatus { font-size: 12px; margin-top: 4px; }
     </style>
     <script>
         window.addEventListener("pageshow", (event) => {
@@ -1599,18 +1589,17 @@
                         <input type="text" class="form-control" id="custUsername" readonly required placeholder="e.g. @username">
                     </div>
                     <div class="col-md-3 mb-3">
-                        <label class="form-label" id="lblPhone">Phone number *</label>
-                        <input type="tel" class="form-control" id="custPhone" required placeholder="e.g. 012345678">
+                        <label class="form-label" id="lblPhone">Phone number (optional)</label>
+                        <input type="tel" class="form-control" id="custPhone" placeholder="e.g. 012345678">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label" id="lblAddress">Delivery Address / Location</label>
                         <div class="input-group">
                             <input type="text" class="form-control" id="custAddress" placeholder="e.g. St 271, Phnom Penh">
-                            <button type="button" class="btn btn-outline-secondary" id="btnPinLocation" title="Pin on map">
+                            <button type="button" class="btn btn-outline-secondary" id="btnPinLocation" title="Pin Current Location">
                                 <i class="bi bi-geo-alt-fill text-danger"></i>
                             </button>
                         </div>
-                        <div id="pinStatus" class="text-muted"></div>
                     </div>
                 </div>
 
@@ -1704,19 +1693,6 @@
             <div class="custom-modal-actions">
                 <button type="button" id="successModalOkBtn" class="custom-modal-btn custom-modal-btn-success" style="width: 100%;">OK</button>
             </div>
-        </div>
-    </div>
-
-    <div id="pinMapModal">
-        <div id="pinMapTop">
-            <span class="pm-title" id="pinMapTitle">Pin your location</span>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="pinMapGps"><i class="bi bi-crosshair"></i> <span id="pinMapGpsTxt">My location</span></button>
-        </div>
-        <div id="pinMapEl"></div>
-        <div id="pinMapMsg"></div>
-        <div id="pinMapBottom">
-            <button type="button" class="btn btn-outline-secondary" id="pinMapCancel">Cancel</button>
-            <button type="button" class="btn btn-danger" id="pinMapOk" disabled>Confirm pin</button>
         </div>
     </div>
 
@@ -1893,9 +1869,20 @@
         // Location: Telegram's location manager when available, browser GPS otherwise
         function getPosition(ok, fail, opts) {
             const lm = IN_TG && tg.isVersionAtLeast?.("8.0") ? tg.LocationManager : null;
+            const browserGps = () => {
+                if (!navigator.geolocation) { fail(); return; }
+                navigator.geolocation.getCurrentPosition(ok, fail, opts);
+            };
             if (lm) {
                 lm.init(() => {
-                    if (!lm.isLocationAvailable) { fail(); return; }
+                    // This phone/Telegram cannot give a location: try the browser's own GPS instead
+                    if (!lm.isLocationAvailable) { browserGps(); return; }
+                    // The customer said "no" before: open Telegram's location settings so they can switch it on
+                    if (lm.isAccessRequested && !lm.isAccessGranted) {
+                        try { lm.openSettings(); } catch (_) { /* older client */ }
+                        fail();
+                        return;
+                    }
                     lm.getLocation((loc) => {
                         if (loc) ok({ coords: { latitude: loc.latitude, longitude: loc.longitude } });
                         else fail();
@@ -1903,8 +1890,7 @@
                 });
                 return;
             }
-            if (!navigator.geolocation) { fail(); return; }
-            navigator.geolocation.getCurrentPosition(ok, fail, opts);
+            browserGps();
         }
 
         // Login links and external links behave correctly inside Telegram
@@ -2927,7 +2913,7 @@
                 placeholderName: "ឧ. ចាន់ សុខា",
                 lblUsername: "Telegram Username *",
                 placeholderUsername: "ឧ. @username",
-                lblPhone: "លេខទូរស័ព្ទ *",
+                lblPhone: "លេខទូរស័ព្ទ (ស្រេចចិត្ត)",
                 placeholderPhone: "ឧ. 012345678",
                 lblAddress: "អាសយដ្ឋានដឹកជញ្ជូន / ទីតាំង",
                 placeholderAddress: "ឧ. ផ្លូវ ២៧១ ភ្នំពេញ",
@@ -2968,7 +2954,7 @@
                 placeholderName: "e.g. Sokha Chan",
                 lblUsername: "Telegram Username *",
                 placeholderUsername: "e.g. @username",
-                lblPhone: "Phone number *",
+                lblPhone: "Phone number (optional)",
                 placeholderPhone: "e.g. 012345678",
                 lblAddress: "Delivery Address / Location",
                 placeholderAddress: "e.g. St 271, Phnom Penh",
@@ -3032,145 +3018,41 @@
             if (history.state && history.state.spa) history.back(); else navigate("");
         });
 
-        // ================= PIN ON MAP (Phnom Penh only) =================
-        // Approximate box around Phnom Penh. The server checks the same box again.
-        const PP_BOUNDS = { south: 11.42, north: 11.70, west: 104.74, east: 105.05 };
-        const inPhnomPenh = (lat, lng) => lat >= PP_BOUNDS.south && lat <= PP_BOUNDS.north && lng >= PP_BOUNDS.west && lng <= PP_BOUNDS.east;
-        const PIN_TXT = {
-            kh: {
-                title: "ជ្រើសរើសទីតាំងលើផែនទី", hint: "ចុចលើផែនទីដើម្បីដាក់ Pin ទីតាំងរបស់អ្នក", gps: "ទីតាំងខ្ញុំ", ok: "បញ្ជាក់ទីតាំង", cancel: "បោះបង់",
-                outside: "ទីតាំងនេះនៅក្រៅរាជធានីភ្នំពេញ។ សូមជ្រើសរើសទីតាំងក្នុងភ្នំពេញ ឬ ជ្រើស «ខេត្ត» ជំនួស។",
-                needPin: "សូមដាក់ Pin ទីតាំងលើផែនទី សម្រាប់ការដឹកជញ្ជូនក្នុងភ្នំពេញ។",
-                pinned: "📍 បានដាក់ Pin ទីតាំងរួចហើយ", notPinned: "⚠️ មិនទាន់ដាក់ Pin ទីតាំង (ត្រូវការ)", locked: "🔒 ដឹកទៅខេត្តមិនត្រូវការ Pin ទីតាំងទេ",
-                needUsername: "គណនី Telegram របស់អ្នកមិនទាន់មាន Username ទេ។ សូមកំណត់ Username នៅក្នុង Settings របស់ Telegram ជាមុនសិន រួចបើកហាងម្តងទៀត។",
-                needPhone: "សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក។", mapFail: "មិនអាចបើកផែនទីបានទេ។ សូមពិនិត្យអ៊ីនធឺណិត រួចព្យាយាមម្តងទៀត។"
-            },
-            en: {
-                title: "Pin your location", hint: "Tap on the map to drop your pin", gps: "My location", ok: "Confirm pin", cancel: "Cancel",
-                outside: "This location is outside Phnom Penh. Please pin a place inside Phnom Penh, or choose Province delivery instead.",
-                needPin: "Please pin your location on the map for Phnom Penh delivery.",
-                pinned: "📍 Location pinned", notPinned: "⚠️ Location not pinned yet (required)", locked: "🔒 Province delivery does not need a map pin",
-                needUsername: "Your Telegram account has no username. Please set a username in Telegram Settings first, then reopen the store.",
-                needPhone: "Please enter your phone number.", mapFail: "Could not open the map. Please check your internet and try again."
-            }
-        };
-        const pt = () => PIN_TXT[currentLang] || PIN_TXT.en;
+        function setPinState(pinned) {
+            const icon = document.querySelector("#btnPinLocation i");
+            if (!icon) return;
+            icon.className = pinned ? "bi bi-geo-alt-fill text-success" : "bi bi-geo-alt-fill text-danger";
+        }
+        setPinState(!!pinnedLocationLink);
 
-        function parsePinned() {
-            const m = /q=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(pinnedLocationLink || "");
-            return m ? { lat: Number(m[1]), lng: Number(m[2]) } : null;
-        }
-        function isProvince() { return document.getElementById("custDeliveryType").value === "province"; }
+        document.getElementById("btnPinLocation").addEventListener("click", () => {
+            const t = cartTr[currentLang];
+            const addressInput = document.getElementById("custAddress");
+            if (!navigator.geolocation && !IN_TG) { showCustomAlert(t.locErr); return; }
 
-        // Province = pin locked. Phnom Penh = pin required.
-        function updatePinState() {
-            const prov = isProvince();
-            const btn = document.getElementById("btnPinLocation");
-            const status = document.getElementById("pinStatus");
-            const addr = document.getElementById("custAddress");
-            if (prov) {
-                pinnedLocationLink = "";
-                sessionStorage.removeItem("pending_pinned_link");
-                btn.disabled = true;
-                status.textContent = pt().locked;
-                status.style.color = "#64748b";
-            } else {
-                btn.disabled = false;
-                const has = !!parsePinned();
-                status.textContent = has ? pt().pinned : pt().notPinned;
-                status.style.color = has ? "#16a34a" : "#dc2626";
-            }
-            addr.readOnly = false;
-        }
-
-        let pinMap = null, pinMarker = null, pinPick = null, leafletPromise = null;
-        function loadLeaflet() {
-            if (window.L) return Promise.resolve();
-            if (leafletPromise) return leafletPromise;
-            leafletPromise = new Promise((resolve, reject) => {
-                const css = document.createElement("link");
-                css.rel = "stylesheet"; css.href = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css";
-                document.head.appendChild(css);
-                const js = document.createElement("script");
-                js.src = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js";
-                js.onload = () => resolve();
-                js.onerror = () => { leafletPromise = null; reject(new Error("leaflet")); };
-                document.head.appendChild(js);
-            });
-            return leafletPromise;
-        }
-        function pinMsg(text, isErr) {
-            const el = document.getElementById("pinMapMsg");
-            el.textContent = text; el.className = isErr ? "err" : "";
-        }
-        function setPick(lat, lng) {
-            pinPick = { lat, lng };
-            if (pinMarker) pinMarker.setLatLng([lat, lng]);
-            else pinMarker = L.circleMarker([lat, lng], { radius: 10, color: "#fff", weight: 3, fillColor: "#dc2626", fillOpacity: 1 }).addTo(pinMap);
-            document.getElementById("pinMapOk").disabled = false;
-            pinMsg(`${lat.toFixed(5)}, ${lng.toFixed(5)}`, false);
-        }
-        function tryPick(lat, lng) {
-            if (!inPhnomPenh(lat, lng)) {
-                showCustomAlert(pt().outside);
-                pinMsg(pt().outside, true);
-                return false;
-            }
-            setPick(lat, lng);
-            return true;
-        }
-        async function openPinMap() {
-            if (isProvince()) return;
-            const T = pt();
-            document.getElementById("pinMapTitle").textContent = T.title;
-            document.getElementById("pinMapGpsTxt").textContent = T.gps;
-            document.getElementById("pinMapOk").textContent = T.ok;
-            document.getElementById("pinMapCancel").textContent = T.cancel;
-            pinMsg(T.hint, false);
-            document.getElementById("pinMapOk").disabled = true;
-            pinPick = null;
-            document.getElementById("pinMapModal").classList.add("active");
-            try { await loadLeaflet(); } catch (_) {
-                document.getElementById("pinMapModal").classList.remove("active");
-                showCustomAlert(T.mapFail); return;
-            }
-            const existing = parsePinned();
-            if (!pinMap) {
-                pinMap = L.map("pinMapEl", { zoomControl: true }).setView([11.5564, 104.9282], 12);
-                L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap" }).addTo(pinMap);
-                L.rectangle([[PP_BOUNDS.south, PP_BOUNDS.west], [PP_BOUNDS.north, PP_BOUNDS.east]], { color: "#dc2626", weight: 1, dashArray: "6 6", fill: false, interactive: false }).addTo(pinMap);
-                pinMap.on("click", (e) => tryPick(e.latlng.lat, e.latlng.lng));
-            }
-            setTimeout(() => {
-                pinMap.invalidateSize();
-                if (existing) { pinMap.setView([existing.lat, existing.lng], 16); setPick(existing.lat, existing.lng); }
-            }, 150);
-        }
-        document.getElementById("btnPinLocation").addEventListener("click", openPinMap);
-        document.getElementById("pinMapCancel").addEventListener("click", () => document.getElementById("pinMapModal").classList.remove("active"));
-        document.getElementById("pinMapGps").addEventListener("click", () => {
-            pinMsg(cartTr[currentLang].locFetching, false);
+            addressInput.value = t.locFetching;
             getPosition(
                 (position) => {
-                    const lat = position.coords.latitude, lng = position.coords.longitude;
-                    if (tryPick(lat, lng)) pinMap.setView([lat, lng], 16);
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    pinnedLocationLink = `https://maps.google.com/?q=${lat},${lng}`;
+                    const formattedAddress = `Pinned Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                    addressInput.value = formattedAddress;
+                    sessionStorage.setItem("pending_pinned_link", pinnedLocationLink);
+                    sessionStorage.setItem("pending_address_text", formattedAddress);
+                    setPinState(true);
+                    showCustomAlert(t.locSuccess, currentLang === "kh" ? "ជោគជ័យ" : "Success");
                 },
-                () => { pinMsg(cartTr[currentLang].locErr, true); showCustomAlert(cartTr[currentLang].locErr); },
+                () => {
+                    addressInput.value = "";
+                    pinnedLocationLink = "";
+                    sessionStorage.removeItem("pending_pinned_link");
+                    sessionStorage.removeItem("pending_address_text");
+                    setPinState(false);
+                    showCustomAlert(t.locErr);
+                },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
-        });
-        document.getElementById("pinMapOk").addEventListener("click", () => {
-            if (!pinPick) return;
-            if (!inPhnomPenh(pinPick.lat, pinPick.lng)) { showCustomAlert(pt().outside); return; }
-            pinnedLocationLink = `https://maps.google.com/?q=${pinPick.lat.toFixed(6)},${pinPick.lng.toFixed(6)}`;
-            sessionStorage.setItem("pending_pinned_link", pinnedLocationLink);
-            const addr = document.getElementById("custAddress");
-            if (!addr.value.trim() || /^Pinned Location/.test(addr.value)) {
-                addr.value = `Pinned Location (${pinPick.lat.toFixed(4)}, ${pinPick.lng.toFixed(4)})`;
-                sessionStorage.setItem("pending_address_text", addr.value);
-            }
-            document.getElementById("pinMapModal").classList.remove("active");
-            updatePinState();
         });
 
         function getItemId(item) {
@@ -3412,27 +3294,25 @@
             const dest = document.getElementById("custDestination"); if (dest) dest.placeholder = d.destPh;
             set("lblCourier", d.courier); set("optCourierPick", d.pickCourier);
             updateSendBtn();
-            if (typeof updatePinState === "function") updatePinState();
         }
 
-        // The button always stays clickable: checks run on click and explain what is missing
+        // Button works only when the Telegram username is filled
         function updateSendBtn() {
             const btn = document.getElementById("btnSubmitOrder");
             if (!btn) return;
-            btn.disabled = false;
-            btn.style.opacity = "";
-            btn.style.cursor = "";
+            const hasUser = document.getElementById("custUsername").value.trim().length > 1;
+            btn.disabled = !hasUser;
+            btn.style.opacity = hasUser ? "" : "0.5";
+            btn.style.cursor = hasUser ? "" : "not-allowed";
             const hint = document.getElementById("txtSubmitHint");
-            if (hint) hint.textContent = cartTr[currentLang].submitHint;
+            if (hint) hint.textContent = hasUser ? cartTr[currentLang].submitHint : dt().needUser;
         }
 
         document.getElementById("custDeliveryType").addEventListener("change", () => {
             const prov = document.getElementById("custDeliveryType").value === "province";
             document.getElementById("provinceBox").style.display = prov ? "" : "none";
             document.getElementById("courierBox").style.display = prov ? "" : "none";
-            updatePinState();
         });
-        updatePinState();
 
         async function triggerOrderProcess(e) {
             if (e) e.preventDefault();
@@ -3440,37 +3320,26 @@
             const d = dt();
 
             if (STORE_CLOSED) { setStoreClosed(true); return; }
+            if (!document.getElementById("custUsername").value.trim()) { showCustomAlert(d.needUser); return; }
             if (!IN_TG) { showCustomAlert(d.needTg); return; }
-
-            // 1. Telegram username (read from Telegram itself, the server checks it again)
-            const tgUsername = String(tg.initDataUnsafe?.user?.username || "").trim();
-            if (!/^[A-Za-z0-9_]{4,32}$/.test(tgUsername)) { showCustomAlert(pt().needUsername); return; }
 
             const items = getCart()
                 .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
                 .filter(i => i.id);
             if (items.length === 0) { showCustomAlert(t.alertEmptyCart); return; }
 
-            // 2. Phone is required
             const phone = document.getElementById("custPhone").value.trim();
-            if (!phone) { showCustomAlert(pt().needPhone); document.getElementById("custPhone").focus(); return; }
-            if (!/^[0-9+\-\s()]{8,15}$/.test(phone)) {
+            if (phone && !/^[0-9+\-\s()]{8,15}$/.test(phone)) {
                 showCustomAlert(currentLang === "kh" ? "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ" : "Please enter a valid phone number.");
                 return;
             }
 
-            // 3. Delivery: Phnom Penh needs a pin inside Phnom Penh, Province needs a place + courier
             const deliveryType = document.getElementById("custDeliveryType").value;
             const destination = document.getElementById("custDestination").value.trim();
             const courier = document.getElementById("custCourier").value;
             if (deliveryType === "province") {
-                pinnedLocationLink = "";
                 if (!destination) { showCustomAlert(d.needProv); return; }
                 if (!courier) { showCustomAlert(d.needCourier); return; }
-            } else {
-                const pin = parsePinned();
-                if (!pin) { showCustomAlert(pt().needPin); return; }
-                if (!inPhnomPenh(pin.lat, pin.lng)) { showCustomAlert(pt().outside); return; }
             }
 
             const btn = document.getElementById("btnSubmitOrder");
@@ -3485,7 +3354,7 @@
                         items,
                         address: document.getElementById("custAddress").value.trim(),
                         phone,
-                        mapLink: deliveryType === "province" ? "" : (pinnedLocationLink || ""),
+                        mapLink: pinnedLocationLink || "",
                         delivery_type: deliveryType,
                         destination: deliveryType === "province" ? destination : "",
                         courier: deliveryType === "province" ? courier : ""
@@ -3505,6 +3374,7 @@
                 sessionStorage.removeItem("pending_address_text");
                 sessionStorage.removeItem("pending_pinned_link");
                 pinnedLocationLink = "";
+                setPinState(false);
                 showSuccessModal(`${d.sent} #${data.order_no} — $${Number(data.total).toFixed(2)}`, "", () => navigate(""));
             } catch (err) {
                 loading.classList.remove("active");
