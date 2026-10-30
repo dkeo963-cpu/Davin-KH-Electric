@@ -1921,15 +1921,15 @@
             try { updateSendBtn(); } catch (_) {}
         }
         (function watchSettings() {
-            let baseline = null;
+            let baseline = null; const lastSite = {};
             const strip = (v) => String(v ?? "").replace(/^"|"$/g, "").trim();
             async function readAll() {
                 try {
-                    const r = await fetch(`${SUPABASE_URL}/rest/v1/app_settings?select=key,value&key=in.(reload_token,is_store_open,closed_message,order_enabled,bakong_enabled)`, {
+                    const r = await fetch(`${SUPABASE_URL}/rest/v1/app_settings?select=key,value&key=in.(reload_token,is_store_open,closed_message,order_enabled,bakong_enabled,promo,hero)`, {
                         headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY }, cache: "no-store",
                     });
                     if (!r.ok) return null;
-                    const o = {}; for (const row of await r.json()) o[row.key] = strip(row.value);
+                    const o = {}; for (const row of await r.json()) o[row.key] = (row.key === "promo" || row.key === "hero") ? row.value : strip(row.value);
                     return o;
                 } catch (_) { return null; }
             }
@@ -1938,6 +1938,15 @@
                 if (!o) return;                                   // network problem: try again later
                 setStoreClosed(String(o.is_store_open ?? "").toLowerCase() === "false", o.closed_message || "");
                 applyPayModes(o);
+                for (const k of ["promo", "hero"]) {                // promo bar / banner text changed in admin: update live
+                    if (o[k] === undefined) continue;
+                    const sig = JSON.stringify(o[k]);
+                    if (sig === lastSite[k]) continue;
+                    const first = lastSite[k] === undefined; lastSite[k] = sig;
+                    if (first) continue;                            // loadSite() already applied the first copy
+                    try { SITE[k] = typeof o[k] === "string" ? JSON.parse(o[k]) : o[k]; } catch (_) { continue; }
+                    if (k === "promo") applyPromo(); else applyHeroOverride();
+                }
                 const t = o.reload_token ?? "";
                 if (baseline === null) { baseline = t; return; }
                 if (t !== baseline) {
