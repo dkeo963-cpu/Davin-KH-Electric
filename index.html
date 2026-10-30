@@ -2018,12 +2018,23 @@
         }
 
         // Location: Telegram's location manager when available, browser GPS otherwise
+        let lastFix = null;   // last good location: reused only if a fresh fix fails
         function getPosition(ok, fail, opts) {
-            const lm = IN_TG && tg.isVersionAtLeast?.("8.0") ? tg.LocationManager : null;
-            const browserGps = () => {
-                if (!navigator.geolocation) { fail(); return; }
-                navigator.geolocation.getCurrentPosition(ok, fail, opts);
+            const good = (pos) => {
+                lastFix = { coords: { latitude: pos.coords.latitude, longitude: pos.coords.longitude }, at: Date.now() };
+                ok(pos);
             };
+            const bad = () => {
+                if (lastFix && Date.now() - lastFix.at < 30 * 60 * 1000) ok(lastFix); else fail();
+            };
+            const browserGps = () => {
+                if (!navigator.geolocation) { bad(); return; }
+                // 1st try: accurate GPS. 2nd try: network/Wi-Fi location (a recent cached one is fine)
+                navigator.geolocation.getCurrentPosition(good, () => {
+                    navigator.geolocation.getCurrentPosition(good, bad, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
+                }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
+            };
+            const lm = IN_TG && tg.isVersionAtLeast?.("8.0") ? tg.LocationManager : null;
             if (lm) {
                 lm.init(() => {
                     // This phone/Telegram cannot give a location: try the browser's own GPS instead
@@ -2035,8 +2046,8 @@
                         return;
                     }
                     lm.getLocation((loc) => {
-                        if (loc) ok({ coords: { latitude: loc.latitude, longitude: loc.longitude } });
-                        else fail();
+                        if (loc) good({ coords: { latitude: loc.latitude, longitude: loc.longitude } });
+                        else browserGps();     // Telegram gave nothing this time: don't give up, try the browser GPS
                     });
                 });
                 return;
@@ -3297,6 +3308,15 @@ async function mpSearch() {
     } catch (_) { note(mt().searchErr); }
 }
 
+// Clear anything left over from an earlier visit (marker, picked point, stuck GPS button)
+function mpResetPicker() {
+    clearTimeout(mpGeoTimer); mpGeoSeq++;
+    if (mpMap && mpMarker) { mpMap.removeLayer(mpMarker); }
+    mpMarker = null; mpPicked = null; mpAddr = "";
+    const btn = mpEl("mpGpsBtn"); if (btn) btn.disabled = false;
+    const ok = mpEl("mpConfirm"); if (ok) ok.disabled = true;
+}
+
 function mpUseGps() {
     if (isProvince()) return;
     const btn = mpEl("mpGpsBtn");
@@ -3662,6 +3682,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             pin.style.opacity = prov ? "0.4" : "";
             pin.style.cursor = prov ? "not-allowed" : "";
             pin.title = prov ? dt().gpsLocked : "Pin Current Location";
+            if (typeof mpResetPicker === "function") mpResetPicker();   // always start the next GPS fetch from a clean picker
             if (prov) {
                 if (typeof mpClose === "function" && document.getElementById("mapPickerModal").classList.contains("active")) mpClose();
                 if (pinnedLocationLink) {                                  // forget the old pin
