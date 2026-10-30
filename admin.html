@@ -105,7 +105,7 @@ label.f{display:block;font-size:12px;color:var(--sub);margin-top:4px}
   <!-- Reload all customers -->
   <div class="card">
     <h2>🔄 ផ្ទុកទំព័រឡើងវិញ / Reload customers' page</h2>
-    <p class="muted" style="margin:0 0 12px">ចុចដើម្បីឲ្យអតិថិជនទាំងអស់ដែលកំពុងបើកហាង ផ្ទុកទំព័រដើមឡើងវិញ (ក្នុងរយៈពេលប្រហែល 15 វិនាទី)។<br>Tap to make every customer who has the store open reload the main page (within about 15 seconds).</p>
+    <p class="muted" style="margin:0 0 12px">ចុចដើម្បីឲ្យអតិថិជនទាំងអស់ដែលកំពុងបើកហាង ផ្ទុកទំព័រដើមឡើងវិញ (ក្នុងរយៈពេលប្រហែល 5 វិនាទី)។<br>Tap to make every customer who has the store open reload the main page (within about 15 seconds).</p>
     <button class="btn" id="reload-all">🔄 ផ្ទុកឡើងវិញគ្រប់គ្នា / Reload all users</button>
   </div>
 
@@ -284,11 +284,9 @@ $("pb-switch").onclick = () => setPay("bakong_enabled", !bakongOn);
 
 /* ============ RELOAD ALL USERS ============ */
 $("reload-all").onclick = async () => {
-  if (!(await askConfirm("ផ្ទុកទំព័រអតិថិជនទាំងអស់ឡើងវិញ?\nReload the page for all customers?"))) return;
-  $("reload-all").disabled = true;
+  toast("កំពុងផ្ញើ… / Sending…", "ok");                 // one tap, no confirmation
   const r = await api({ action: "admin_set", key: "reload_token", value: String(Date.now()) });
-  $("reload-all").disabled = false;
-  toast(r.error || "បានផ្ញើហើយ / Sent — customers will reload shortly", r.error ? "err" : "ok");
+  toast(r.error || "បានផ្ញើហើយ / Sent — customers reload in ~5s", r.error ? "err" : "ok");
 };
 
 /* ============ PROMO + HERO TEXT ============ */
