@@ -3359,8 +3359,7 @@ function mpConfirm() {
         sessionStorage.setItem("pending_address_text", autoAddress);
     }
     setPinState(true);
-    mpClose();
-    showCustomAlert(t.locSuccess, currentLang === "kh" ? "ជោគជ័យ" : "Success");
+    mpClose();                       // pinned quietly: no success pop-up
 }
 
 function mpRemovePin() {
@@ -3603,7 +3602,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             kh: { title: "ការដឹកជញ្ជូន", to: "ដឹកទៅ", pp: "ភ្នំពេញ", prov: "ខេត្ត", province: "ទីកន្លែងដែលចង់ឱ្យដឹកទៅ *", destPh: "ឧ. សៀមរាប សង្កាត់ស្វាយដង្គំ ជិតផ្សារចាស់",
                   courier: "សេវាដឹកជញ្ជូន *", pickCourier: "ជ្រើសរើសសេវា",
                   needUser: "សូមកំណត់ Telegram Username ជាមុនសិន ទើបអាចបញ្ជាទិញបាន។",
-                  needPhone: "សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក (ចាំបាច់ត្រូវបំពេញ)។", payBakong: "បង់ប្រាក់តាម Bakong KHQR", unavailable: "ការបញ្ជាទិញមិនអាចប្រើបានបណ្តោះអាសន្ន។", badPhone: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ",
+                  needPhone: "សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក (ចាំបាច់ត្រូវបំពេញ)។", userInvalid: "Username របស់អ្នកមិនត្រឹមត្រូវ ឬត្រូវបានលុបចេញ។ សូមកំណត់ Username ក្នុង Telegram ម្តងទៀត។", payBakong: "បង់ប្រាក់តាម Bakong KHQR", unavailable: "ការបញ្ជាទិញមិនអាចប្រើបានបណ្តោះអាសន្ន។", badPhone: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ",
                   gpsLocked: "ដឹកទៅខេត្ត៖ មិនអាចប្រើ GPS បានទេ សូមសរសេរទីកន្លែងដែលចង់ឱ្យដឹកទៅ",
                   needProv: "សូមសរសេរទីកន្លែងដែលអ្នកចង់ឱ្យដឹកទៅ។", needCourier: "សូមជ្រើសរើសសេវាដឹកជញ្ជូន (VET, ZTO ឬ Loda)។",
                   needTg: "សូមបើកហាងនេះតាមរយៈ Telegram ដើម្បីបញ្ជាទិញ។", sending: "កំពុងផ្ញើការបញ្ជាទិញ...",
@@ -3611,7 +3610,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             en: { title: "Delivery", to: "Delivery to", pp: "Phnom Penh", prov: "Province", province: "Where to deliver *", destPh: "e.g. Siem Reap, Svay Dangkum, near Old Market",
                   courier: "Delivery service *", pickCourier: "Select service",
                   needUser: "Please set a Telegram username first, then you can place an order.",
-                  needPhone: "Please enter your phone number (required).", payBakong: "Pay with Bakong KHQR", unavailable: "Ordering is temporarily unavailable.", badPhone: "Please enter a valid phone number.",
+                  needPhone: "Please enter your phone number (required).", userInvalid: "Your username is invalid or was removed. Please set your Telegram username again.", payBakong: "Pay with Bakong KHQR", unavailable: "Ordering is temporarily unavailable.", badPhone: "Please enter a valid phone number.",
                   gpsLocked: "Province delivery: GPS is turned off. Please write where to deliver.",
                   needProv: "Please write exactly where you want us to deliver.", needCourier: "Please select a delivery service (VET, ZTO or Loda).",
                   needTg: "Please open this store from Telegram to place an order.", sending: "Sending your order...",
@@ -3723,12 +3722,14 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
                     }
                 });
                 if (error || !data || !data.success) {
-                    let msg = d.fail;
+                    let msg = d.fail, code = "";
                     try {
                         const j = await (error && error.context && error.context.json && error.context.json());
                         if (j && j.error) msg = j.error;
+                        if (j && j.code) code = j.code;
                     } catch (_) { /* keep generic message */ }
-                    if (!error && data && data.error) msg = data.error;
+                    if (!error && data && data.error) { msg = data.error; code = data.code || code; }
+                    if (code === "username_invalid" || code === "username_required") msg = d.userInvalid;
                     throw new Error(msg);
                 }
                 loading.classList.remove("active");
