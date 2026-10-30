@@ -1696,10 +1696,13 @@
                 </div>
             </div>
 
-            <div class="checkout-action">
+            <div class="checkout-action" style="flex-wrap: wrap; gap: 8px;">
                 <span class="text-muted" style="font-size: 11px;" id="txtSubmitHint">Click the button to submit your order</span>
                 <button type="button" class="btn-submit" id="btnSubmitOrder" title="Submit Order">
                     <i class="bi bi-send-fill"></i> <span id="txtSubmitOrderBtn">Submit Order</span>
+                </button>
+                <button type="button" class="btn-submit" id="btnPayBakong" title="Pay with Bakong KHQR" style="display:none; background:#0b3d91;">
+                    <i class="bi bi-qr-code-scan"></i> <span id="txtPayBakongBtn">Pay with Bakong KHQR</span>
                 </button>
             </div>
         </div>
@@ -1907,12 +1910,22 @@
             c.querySelector("#storeClosedMsg").textContent = msg || "សូមត្រឡប់មកវិញពេលក្រោយ។\nPlease come back later.";
             document.body.style.overflow = "hidden";
         }
+        // Admin switches: normal "send order" and/or Bakong KHQR (default: order on, Bakong off)
+        let ORDER_ON = true, BAKONG_ON = false;
+        function applyPayModes(o) {
+            ORDER_ON = String(o.order_enabled ?? "true").toLowerCase() !== "false";
+            BAKONG_ON = String(o.bakong_enabled ?? "false").toLowerCase() === "true";
+            const ob = document.getElementById("btnSubmitOrder"), bb = document.getElementById("btnPayBakong");
+            if (ob) ob.style.display = ORDER_ON ? "" : "none";
+            if (bb) bb.style.display = BAKONG_ON ? "" : "none";
+            try { updateSendBtn(); } catch (_) {}
+        }
         (function watchSettings() {
             let baseline = null;
             const strip = (v) => String(v ?? "").replace(/^"|"$/g, "").trim();
             async function readAll() {
                 try {
-                    const r = await fetch(`${SUPABASE_URL}/rest/v1/app_settings?select=key,value&key=in.(reload_token,is_store_open,closed_message)`, {
+                    const r = await fetch(`${SUPABASE_URL}/rest/v1/app_settings?select=key,value&key=in.(reload_token,is_store_open,closed_message,order_enabled,bakong_enabled)`, {
                         headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY }, cache: "no-store",
                     });
                     if (!r.ok) return null;
@@ -1924,6 +1937,7 @@
                 const o = await readAll();
                 if (!o) return;                                   // network problem: try again later
                 setStoreClosed(String(o.is_store_open ?? "").toLowerCase() === "false", o.closed_message || "");
+                applyPayModes(o);
                 const t = o.reload_token ?? "";
                 if (baseline === null) { baseline = t; return; }
                 if (t !== baseline) {
@@ -3580,7 +3594,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             kh: { title: "ការដឹកជញ្ជូន", to: "ដឹកទៅ", pp: "ភ្នំពេញ", prov: "ខេត្ត", province: "ទីកន្លែងដែលចង់ឱ្យដឹកទៅ *", destPh: "ឧ. សៀមរាប សង្កាត់ស្វាយដង្គំ ជិតផ្សារចាស់",
                   courier: "សេវាដឹកជញ្ជូន *", pickCourier: "ជ្រើសរើសសេវា",
                   needUser: "សូមកំណត់ Telegram Username ជាមុនសិន ទើបអាចបញ្ជាទិញបាន។",
-                  needPhone: "សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក (ចាំបាច់ត្រូវបំពេញ)។", badPhone: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ",
+                  needPhone: "សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក (ចាំបាច់ត្រូវបំពេញ)។", payBakong: "បង់ប្រាក់តាម Bakong KHQR", unavailable: "ការបញ្ជាទិញមិនអាចប្រើបានបណ្តោះអាសន្ន។", badPhone: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ",
                   gpsLocked: "ដឹកទៅខេត្ត៖ មិនអាចប្រើ GPS បានទេ សូមសរសេរទីកន្លែងដែលចង់ឱ្យដឹកទៅ",
                   needProv: "សូមសរសេរទីកន្លែងដែលអ្នកចង់ឱ្យដឹកទៅ។", needCourier: "សូមជ្រើសរើសសេវាដឹកជញ្ជូន (VET, ZTO ឬ Loda)។",
                   needTg: "សូមបើកហាងនេះតាមរយៈ Telegram ដើម្បីបញ្ជាទិញ។", sending: "កំពុងផ្ញើការបញ្ជាទិញ...",
@@ -3588,7 +3602,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             en: { title: "Delivery", to: "Delivery to", pp: "Phnom Penh", prov: "Province", province: "Where to deliver *", destPh: "e.g. Siem Reap, Svay Dangkum, near Old Market",
                   courier: "Delivery service *", pickCourier: "Select service",
                   needUser: "Please set a Telegram username first, then you can place an order.",
-                  needPhone: "Please enter your phone number (required).", badPhone: "Please enter a valid phone number.",
+                  needPhone: "Please enter your phone number (required).", payBakong: "Pay with Bakong KHQR", unavailable: "Ordering is temporarily unavailable.", badPhone: "Please enter a valid phone number.",
                   gpsLocked: "Province delivery: GPS is turned off. Please write where to deliver.",
                   needProv: "Please write exactly where you want us to deliver.", needCourier: "Please select a delivery service (VET, ZTO or Loda).",
                   needTg: "Please open this store from Telegram to place an order.", sending: "Sending your order...",
@@ -3602,7 +3616,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             set("txtDeliveryTitle", d.title); set("lblDeliveryType", d.to); set("optPP", d.pp); set("optProv", d.prov);
             set("lblProvince", d.province);
             const dest = document.getElementById("custDestination"); if (dest) dest.placeholder = d.destPh;
-            set("lblCourier", d.courier); set("optCourierPick", d.pickCourier);
+            set("lblCourier", d.courier); set("optCourierPick", d.pickCourier); set("txtPayBakongBtn", d.payBakong);
             updateSendBtn();
         }
 
@@ -3622,8 +3636,10 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             btn.disabled = !ready;
             btn.style.opacity = ready ? "" : "0.5";
             btn.style.cursor = ready ? "" : "not-allowed";
+            const pb = document.getElementById("btnPayBakong");
+            if (pb) { pb.disabled = !ready; pb.style.opacity = ready ? "" : "0.5"; pb.style.cursor = ready ? "" : "not-allowed"; }
             const hint = document.getElementById("txtSubmitHint");
-            if (hint) hint.textContent = !hasUser ? dt().needUser : (!phoneOk ? dt().needPhone : cartTr[currentLang].submitHint);
+            if (hint) hint.textContent = !hasUser ? dt().needUser : (!phoneOk ? dt().needPhone : ((!ORDER_ON && !BAKONG_ON) ? dt().unavailable : cartTr[currentLang].submitHint));
         }
 
         // Province = GPS locked (and any old pin is removed). Phnom Penh = GPS on again.
@@ -3722,6 +3738,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             }
         }
         document.getElementById("btnSubmitOrder").addEventListener("click", triggerOrderProcess);
+        document.getElementById("btnPayBakong").addEventListener("click", startPayment);
 
         // ================= BAKONG KHQR PAYMENT =================
         const payModal = document.getElementById("payModal");
@@ -3843,7 +3860,15 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
 
         async function startPayment() {
             if (STORE_CLOSED) { setStoreClosed(true); return; }
+            if (!BAKONG_ON) return;
             if (!phoneValid(document.getElementById("custPhone").value)) { showCustomAlert(dt().needPhone); document.getElementById("custPhone").focus(); return; }
+            const payDelivery = document.getElementById("custDeliveryType").value;
+            const payDest = document.getElementById("custDestination").value.trim();
+            const payCourier = document.getElementById("custCourier").value;
+            if (payDelivery === "province") {
+                if (!payDest) { showCustomAlert(dt().needProv); return; }
+                if (!payCourier) { showCustomAlert(dt().needCourier); return; }
+            }
             if (!currentUserSession) { showCustomAlert(currentLang === "kh" ? "សូមបើកគេហទំព័រនេះតាមរយៈ Telegram ដើម្បីបន្ត។" : "Please open this store from Telegram to continue."); return; }
             const items = getCart()
                 .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
@@ -3858,7 +3883,10 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
                         items,
                         address: document.getElementById("custAddress").value.trim(),
                         phone: document.getElementById("custPhone").value.trim(),
-                        mapLink: isProvince() ? "" : (pinnedLocationLink || "")
+                        mapLink: isProvince() ? "" : (pinnedLocationLink || ""),
+                        delivery_type: payDelivery,
+                        destination: payDelivery === "province" ? payDest : "",
+                        courier: payDelivery === "province" ? payCourier : ""
                     }
                 });
                 if (error || !data?.qr) {
