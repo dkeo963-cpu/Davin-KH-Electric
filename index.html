@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- Security: Content Security Policy (CSP) allowing Supabase, Unsplash, Telegram, and CDNs -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://telegram.org https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com https://*.supabase.co https://oauth.telegram.org; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://telegram.org https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://*.telegram.org https://t.me https://*.t.me https://*.telegra.ph https://*.telegram-cdn.org https://*.telesco.pe https://placehold.co https://tile.openstreetmap.org; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com; child-src https://www.youtube-nocookie.com https://www.youtube.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://nominatim.openstreetmap.org https://oauth.telegram.org https://*.telegram.org;">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://dfrqmwytnseckrcjrwca.supabase.co" crossorigin>
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm" crossorigin>
     <title>Davin Electric | Professional Technical Solutions</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -1647,8 +1650,8 @@
                         <input type="text" class="form-control" id="custUsername" readonly required placeholder="e.g. @username">
                     </div>
                     <div class="col-md-3 mb-3">
-                        <label class="form-label" id="lblPhone">Phone number (optional)</label>
-                        <input type="tel" class="form-control" id="custPhone" placeholder="e.g. 012345678">
+                        <label class="form-label" id="lblPhone">Phone number *</label>
+                        <input type="tel" class="form-control" id="custPhone" inputmode="tel" autocomplete="tel" maxlength="20" required placeholder="e.g. 012345678">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label" id="lblAddress">Delivery Address / Location</label>
@@ -1808,7 +1811,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 
     <!-- Supabase Integration & Logic Script -->
     <script type="module">
@@ -1929,8 +1932,10 @@
                 }
             }
             check();
-            setInterval(check, 15000);
+            setInterval(() => { if (!document.hidden) check(); }, 5000);
             document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+            window.addEventListener("focus", check);
+            window.addEventListener("online", check);
         })();
 
         // ================= TELEGRAM MINI APP =================
@@ -3036,7 +3041,7 @@
                 placeholderName: "ឧ. ចាន់ សុខា",
                 lblUsername: "Telegram Username *",
                 placeholderUsername: "ឧ. @username",
-                lblPhone: "លេខទូរស័ព្ទ (ស្រេចចិត្ត)",
+                lblPhone: "លេខទូរស័ព្ទ *",
                 placeholderPhone: "ឧ. 012345678",
                 lblAddress: "អាសយដ្ឋានដឹកជញ្ជូន / ទីតាំង",
                 placeholderAddress: "ឧ. ផ្លូវ ២៧១ ភ្នំពេញ",
@@ -3077,7 +3082,7 @@
                 placeholderName: "e.g. Sokha Chan",
                 lblUsername: "Telegram Username *",
                 placeholderUsername: "e.g. @username",
-                lblPhone: "Phone number (optional)",
+                lblPhone: "Phone number *",
                 placeholderPhone: "e.g. 012345678",
                 lblAddress: "Delivery Address / Location",
                 placeholderAddress: "e.g. St 271, Phnom Penh",
@@ -3270,6 +3275,7 @@ async function mpSearch() {
 }
 
 function mpUseGps() {
+    if (isProvince()) return;
     const btn = mpEl("mpGpsBtn");
     btn.disabled = true; mpEl("mpResults").textContent = "";
     mpStatus(mt().locating);
@@ -3289,6 +3295,7 @@ function mpClose() {
 }
 
 async function openMapPicker() {
+    if (isProvince()) { showCustomAlert(dt().gpsLocked); return; }   // GPS is locked for province delivery
     mpApplyTexts();
     mpEl("mapPickerModal").classList.add("active");
     document.body.style.overflow = "hidden";
@@ -3399,6 +3406,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
         // Fill name + username automatically from the Telegram account
         async function checkAuth() {
             let session = null;
+            await Promise.race([miniAppLogin(), new Promise((r) => setTimeout(r, 4000))]);   // login runs in the background
             try { ({ data: { session } } = await supabase.auth.getSession()); } catch (_) {}
             currentUserSession = session;
 
@@ -3425,6 +3433,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
                 } catch (_) { /* keep empty */ }
             }
             if (phone && !phoneEl.value) phoneEl.value = phone;
+            phoneEl.dispatchEvent(new Event("input"));
 
             const pendingAddress = sessionStorage.getItem("pending_address_text");
             if (pendingAddress && !addrEl.value) addrEl.value = pendingAddress;
@@ -3571,12 +3580,16 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             kh: { title: "ការដឹកជញ្ជូន", to: "ដឹកទៅ", pp: "ភ្នំពេញ", prov: "ខេត្ត", province: "ទីកន្លែងដែលចង់ឱ្យដឹកទៅ *", destPh: "ឧ. សៀមរាប សង្កាត់ស្វាយដង្គំ ជិតផ្សារចាស់",
                   courier: "សេវាដឹកជញ្ជូន *", pickCourier: "ជ្រើសរើសសេវា",
                   needUser: "សូមកំណត់ Telegram Username ជាមុនសិន ទើបអាចបញ្ជាទិញបាន។",
+                  needPhone: "សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក (ចាំបាច់ត្រូវបំពេញ)។", badPhone: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ",
+                  gpsLocked: "ដឹកទៅខេត្ត៖ មិនអាចប្រើ GPS បានទេ សូមសរសេរទីកន្លែងដែលចង់ឱ្យដឹកទៅ",
                   needProv: "សូមសរសេរទីកន្លែងដែលអ្នកចង់ឱ្យដឹកទៅ។", needCourier: "សូមជ្រើសរើសសេវាដឹកជញ្ជូន (VET, ZTO ឬ Loda)។",
                   needTg: "សូមបើកហាងនេះតាមរយៈ Telegram ដើម្បីបញ្ជាទិញ។", sending: "កំពុងផ្ញើការបញ្ជាទិញ...",
                   sent: "ការបញ្ជាទិញត្រូវបានផ្ញើទៅហាងរួចរាល់។ លេខកូដ", fail: "មិនអាចផ្ញើការបញ្ជាទិញបានទេ។ សូមព្យាយាមម្តងទៀត។" },
             en: { title: "Delivery", to: "Delivery to", pp: "Phnom Penh", prov: "Province", province: "Where to deliver *", destPh: "e.g. Siem Reap, Svay Dangkum, near Old Market",
                   courier: "Delivery service *", pickCourier: "Select service",
                   needUser: "Please set a Telegram username first, then you can place an order.",
+                  needPhone: "Please enter your phone number (required).", badPhone: "Please enter a valid phone number.",
+                  gpsLocked: "Province delivery: GPS is turned off. Please write where to deliver.",
                   needProv: "Please write exactly where you want us to deliver.", needCourier: "Please select a delivery service (VET, ZTO or Loda).",
                   needTg: "Please open this store from Telegram to place an order.", sending: "Sending your order...",
                   sent: "Your order was sent to the store. Order no.", fail: "Could not send your order. Please try again." }
@@ -3593,23 +3606,52 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             updateSendBtn();
         }
 
-        // Button works only when the Telegram username is filled
+        // Phone number is required: 8-15 digits (+, spaces, - and brackets are allowed)
+        function phoneValid(v) {
+            v = String(v || "").trim();
+            return /^[0-9+\-\s()]{8,15}$/.test(v) && (v.match(/[0-9]/g) || []).length >= 8;
+        }
+
+        // Button works only when the Telegram username AND the phone number are filled
         function updateSendBtn() {
             const btn = document.getElementById("btnSubmitOrder");
             if (!btn) return;
             const hasUser = document.getElementById("custUsername").value.trim().length > 1;
-            btn.disabled = !hasUser;
-            btn.style.opacity = hasUser ? "" : "0.5";
-            btn.style.cursor = hasUser ? "" : "not-allowed";
+            const phoneOk = phoneValid(document.getElementById("custPhone").value);
+            const ready = hasUser && phoneOk;
+            btn.disabled = !ready;
+            btn.style.opacity = ready ? "" : "0.5";
+            btn.style.cursor = ready ? "" : "not-allowed";
             const hint = document.getElementById("txtSubmitHint");
-            if (hint) hint.textContent = hasUser ? cartTr[currentLang].submitHint : dt().needUser;
+            if (hint) hint.textContent = !hasUser ? dt().needUser : (!phoneOk ? dt().needPhone : cartTr[currentLang].submitHint);
         }
 
-        document.getElementById("custDeliveryType").addEventListener("change", () => {
-            const prov = document.getElementById("custDeliveryType").value === "province";
+        // Province = GPS locked (and any old pin is removed). Phnom Penh = GPS on again.
+        const isProvince = () => document.getElementById("custDeliveryType").value === "province";
+        function applyDeliveryLock() {
+            const prov = isProvince();
             document.getElementById("provinceBox").style.display = prov ? "" : "none";
             document.getElementById("courierBox").style.display = prov ? "" : "none";
-        });
+            const pin = document.getElementById("btnPinLocation");
+            if (!pin) return;
+            pin.disabled = prov;
+            pin.style.opacity = prov ? "0.4" : "";
+            pin.style.cursor = prov ? "not-allowed" : "";
+            pin.title = prov ? dt().gpsLocked : "Pin Current Location";
+            if (prov) {
+                if (typeof mpClose === "function" && document.getElementById("mapPickerModal").classList.contains("active")) mpClose();
+                if (pinnedLocationLink) {                                  // forget the old pin
+                    const input = document.getElementById("custAddress");
+                    if (input.value.trim() === autoAddress || /^Pinned Location/.test(input.value.trim())) input.value = "";
+                    autoAddress = ""; pinnedLocationLink = "";
+                    sessionStorage.removeItem("pending_pinned_link"); sessionStorage.removeItem("pending_address_text");
+                    setPinState(false);
+                }
+            }
+        }
+        document.getElementById("custDeliveryType").addEventListener("change", applyDeliveryLock);
+        document.getElementById("custPhone").addEventListener("input", updateSendBtn);
+        applyDeliveryLock();
 
         async function triggerOrderProcess(e) {
             if (e) e.preventDefault();
@@ -3626,10 +3668,8 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
             if (items.length === 0) { showCustomAlert(t.alertEmptyCart); return; }
 
             const phone = document.getElementById("custPhone").value.trim();
-            if (phone && !/^[0-9+\-\s()]{8,15}$/.test(phone)) {
-                showCustomAlert(currentLang === "kh" ? "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ" : "Please enter a valid phone number.");
-                return;
-            }
+            if (!phone) { showCustomAlert(d.needPhone); document.getElementById("custPhone").focus(); return; }
+            if (!phoneValid(phone)) { showCustomAlert(d.badPhone); document.getElementById("custPhone").focus(); return; }
 
             const deliveryType = document.getElementById("custDeliveryType").value;
             const destination = document.getElementById("custDestination").value.trim();
@@ -3651,7 +3691,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
                         items,
                         address: document.getElementById("custAddress").value.trim(),
                         phone,
-                        mapLink: pinnedLocationLink || "",
+                        mapLink: deliveryType === "province" ? "" : (pinnedLocationLink || ""),
                         delivery_type: deliveryType,
                         destination: deliveryType === "province" ? destination : "",
                         courier: deliveryType === "province" ? courier : ""
@@ -3803,6 +3843,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
 
         async function startPayment() {
             if (STORE_CLOSED) { setStoreClosed(true); return; }
+            if (!phoneValid(document.getElementById("custPhone").value)) { showCustomAlert(dt().needPhone); document.getElementById("custPhone").focus(); return; }
             if (!currentUserSession) { showCustomAlert(currentLang === "kh" ? "សូមបើកគេហទំព័រនេះតាមរយៈ Telegram ដើម្បីបន្ត។" : "Please open this store from Telegram to continue."); return; }
             const items = getCart()
                 .map(i => ({ id: getItemId(i), quantity: Math.max(1, parseInt(i.quantity) || 1) }))
@@ -3817,7 +3858,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
                         items,
                         address: document.getElementById("custAddress").value.trim(),
                         phone: document.getElementById("custPhone").value.trim(),
-                        mapLink: pinnedLocationLink || ""
+                        mapLink: isProvince() ? "" : (pinnedLocationLink || "")
                     }
                 });
                 if (error || !data?.qr) {
@@ -3983,8 +4024,8 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && mpEl("ma
         applyLanguage();
         fetchNewArrivals();
         const categoriesReady = fetchCategories();
-        await Promise.race([miniAppLogin(), new Promise((r) => setTimeout(r, 8000))]);
-        route();
+        miniAppLogin();      // sign in quietly in the background
+        route();             // draw the page right away
     </script>
 </body>
 </html>
