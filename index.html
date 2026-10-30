@@ -2018,41 +2018,59 @@
         }
 
         // Location: Telegram's location manager when available, browser GPS otherwise
-        let lastFix = null;   // last good location: reused only if a fresh fix fails
+        let lastFix = null;   // last good location: reused if a fresh fix fails
+        let gpsWhy = "";      // short reason for the last failure (shown in the error so we can see what went wrong)
+        const getLastFix = () => (lastFix && Date.now() - lastFix.at < 30 * 60 * 1000 ? lastFix : null);
         function getPosition(ok, fail, opts) {
+            let settled = false;
             const good = (pos) => {
+                if (settled) return; settled = true;
                 lastFix = { coords: { latitude: pos.coords.latitude, longitude: pos.coords.longitude }, at: Date.now() };
                 ok(pos);
             };
-            const bad = () => {
-                if (lastFix && Date.now() - lastFix.at < 30 * 60 * 1000) ok(lastFix); else fail();
+            const bad = (why) => {
+                if (settled) return;
+                if (why) gpsWhy = why;
+                const f = getLastFix();
+                if (f) { settled = true; ok(f); } else { settled = true; fail(); }
             };
             const browserGps = () => {
-                if (!navigator.geolocation) { bad(); return; }
+                if (settled) return;
+                if (!navigator.geolocation) { bad("no-geolocation"); return; }
                 // 1st try: accurate GPS. 2nd try: network/Wi-Fi location (a recent cached one is fine)
                 navigator.geolocation.getCurrentPosition(good, () => {
-                    navigator.geolocation.getCurrentPosition(good, bad, { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
-                }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
+                    navigator.geolocation.getCurrentPosition(good, (e) => bad("browser-" + (e && e.code)), { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 });
+                }, { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 });
             };
             const lm = IN_TG && tg.isVersionAtLeast?.("8.0") ? tg.LocationManager : null;
-            if (lm) {
+            if (!lm) { browserGps(); return; }
+
+            // Telegram sometimes never answers the 2nd request: stop waiting after 5s and use the browser GPS
+            const watchdog = setTimeout(() => { gpsWhy = "tg-timeout"; browserGps(); }, 5000);
+            const tgDone = () => clearTimeout(watchdog);
+            try {
                 lm.init(() => {
-                    // This phone/Telegram cannot give a location: try the browser's own GPS instead
-                    if (!lm.isLocationAvailable) { browserGps(); return; }
-                    // The customer said "no" before: open Telegram's location settings so they can switch it on
+                    if (settled) { tgDone(); return; }
+                    if (!lm.isLocationAvailable) { tgDone(); browserGps(); return; }
+                    // The customer said "no" before: try the browser GPS / last fix first, open Telegram settings only if all fail
                     if (lm.isAccessRequested && !lm.isAccessGranted) {
+                        tgDone();
+                        gpsWhy = "tg-denied";
+                        const f = getLastFix();
+                        if (f) { settled = true; ok(f); return; }
                         try { lm.openSettings(); } catch (_) { /* older client */ }
-                        fail();
+                        browserGps();
                         return;
                     }
-                    lm.getLocation((loc) => {
-                        if (loc) good({ coords: { latitude: loc.latitude, longitude: loc.longitude } });
-                        else browserGps();     // Telegram gave nothing this time: don't give up, try the browser GPS
-                    });
+                    try {
+                        lm.getLocation((loc) => {
+                            tgDone();
+                            if (loc && typeof loc.latitude === "number") good({ coords: { latitude: loc.latitude, longitude: loc.longitude } });
+                            else { gpsWhy = "tg-null"; browserGps(); }
+                        });
+                    } catch (_) { tgDone(); gpsWhy = "tg-throw"; browserGps(); }
                 });
-                return;
-            }
-            browserGps();
+            } catch (_) { tgDone(); gpsWhy = "tg-init"; browserGps(); }
         }
 
         // Login links and external links behave correctly inside Telegram
@@ -3324,10 +3342,14 @@ function mpUseGps() {
     mpStatus(mt().locating);
     let done = false;
     const finish = (fn) => (arg) => { if (done) return; done = true; clearTimeout(guard); btn.disabled = false; fn(arg); };
-    const guard = setTimeout(finish(() => mpStatus(mt().gpsErr, true)), 20000);   // never leave the button stuck
+    const guard = setTimeout(finish(() => {
+        const f = getLastFix();
+        if (f) mpPlace(f.coords.latitude, f.coords.longitude, { zoom: 17 });
+        else mpStatus(mt().gpsErr + " [" + (gpsWhy || "timeout") + "]", true);
+    }), 20000);   // never leave the button stuck
     getPosition(
         finish((pos) => mpPlace(pos.coords.latitude, pos.coords.longitude, { zoom: 17 })),
-        finish(() => mpStatus(mt().gpsErr, true)),
+        finish(() => mpStatus(mt().gpsErr + " [" + (gpsWhy || "failed") + "]", true)),
         { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
 }
