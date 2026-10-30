@@ -118,6 +118,8 @@ label.f{display:block;font-size:12px;color:var(--sub);margin-top:4px}
     <label class="f">Highlighted words (orange)</label><input class="in" id="pm-strong" maxlength="40">
     <label class="f">Button text (empty = no button)</label><input class="in" id="pm-btn" maxlength="30">
     <label class="f">Button link</label><input class="in" id="pm-url" maxlength="200" placeholder="index.html?products=all">
+    <label class="f">Text style (running, beat…)</label><select class="in" id="pm-fx"><option value="">Normal (no effect)</option><option value="run-left">Running ← left</option><option value="run-right">Running → right</option><option value="beat">Beat (heartbeat)</option><option value="blink">Blink</option><option value="bounce">Bounce</option><option value="glow">Glow</option><option value="shake">Shake</option><option value="rainbow">Rainbow colors</option></select>
+    <label class="f">Style speed</label><select class="in" id="pm-speed"><option value="">Normal</option><option value="slow">Slow</option><option value="fast">Fast</option></select>
     <button class="btn s" id="pm-save">រក្សាទុក / Save</button>
   </div>
 
@@ -131,6 +133,10 @@ label.f{display:block;font-size:12px;color:var(--sub);margin-top:4px}
     <label class="f">English · Welcome line</label><input class="in" id="hr-badge_en" maxlength="120">
     <label class="f">English · Title</label><textarea id="hr-title_en" maxlength="300" style="min-height:56px"></textarea>
     <label class="f">English · Subtitle</label><textarea id="hr-sub_en" maxlength="300" style="min-height:56px"></textarea>
+    <label class="f">Welcome line style</label><select class="in" id="hr-fx_badge"><option value="">Normal (no effect)</option><option value="run-left">Running ← left</option><option value="run-right">Running → right</option><option value="beat">Beat (heartbeat)</option><option value="blink">Blink</option><option value="bounce">Bounce</option><option value="glow">Glow</option><option value="shake">Shake</option><option value="rainbow">Rainbow colors</option></select>
+    <label class="f">Title style</label><select class="in" id="hr-fx_title"><option value="">Normal (no effect)</option><option value="run-left">Running ← left</option><option value="run-right">Running → right</option><option value="beat">Beat (heartbeat)</option><option value="blink">Blink</option><option value="bounce">Bounce</option><option value="glow">Glow</option><option value="shake">Shake</option><option value="rainbow">Rainbow colors</option></select>
+    <label class="f">Subtitle style</label><select class="in" id="hr-fx_sub"><option value="">Normal (no effect)</option><option value="run-left">Running ← left</option><option value="run-right">Running → right</option><option value="beat">Beat (heartbeat)</option><option value="blink">Blink</option><option value="bounce">Bounce</option><option value="glow">Glow</option><option value="shake">Shake</option><option value="rainbow">Rainbow colors</option></select>
+    <label class="f">Style speed</label><select class="in" id="hr-speed"><option value="">Normal</option><option value="slow">Slow</option><option value="fast">Fast</option></select>
     <button class="btn s" id="hr-save">រក្សាទុក / Save</button>
   </div>
 
@@ -288,7 +294,7 @@ $("reload-all").onclick = async () => {
 /* ============ PROMO + HERO TEXT ============ */
 function fillForm(prefix, o, keys) { keys.forEach((k) => { const el = $(prefix + k); if (el) el.value = o[k] ?? ""; }); }
 function readForm(prefix, keys) { const o = {}; keys.forEach((k) => { o[k] = $(prefix + k).value.trim(); }); return o; }
-const PM_KEYS = ["badge", "text", "strong", "btn", "url"], HR_KEYS = ["badge_kh", "title_kh", "sub_kh", "badge_en", "title_en", "sub_en"];
+const PM_KEYS = ["badge", "text", "strong", "btn", "url", "fx", "speed"], HR_KEYS = ["badge_kh", "title_kh", "sub_kh", "badge_en", "title_en", "sub_en", "fx_badge", "fx_title", "fx_sub", "speed"];
 $("pm-save").onclick = async () => {
   const o = readForm("pm-", PM_KEYS); o.on = $("pm-on").checked;
   const r = await api({ action: "admin_set", key: "promo", value: JSON.stringify(o) });
